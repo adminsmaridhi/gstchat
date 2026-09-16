@@ -1,12 +1,38 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
+const ChatMessage = require("../models/ChatMessage");
 const { signToken, requireAuth } = require("../middleware/auth");
 const { otpEnabled } = require("../config/config");
 const { issueAndDeliverOtp, verifyOtp, rateLimitFor } = require("../utils/otp");
 const { gstinIsValid, panIsValid } = require("../utils/validators");
 
 const router = express.Router();
+
+async function sendAdminWelcome(userId, userName) {
+  try {
+    const admin = await User.findOne({ role: "superadmin" }).select("_id role name").lean();
+    if (!admin) return;
+    const content = [
+      `Welcome to Smaridhi 🎉`,
+      ``,
+      `Your Business. Our Compliance.`,
+      `Your Growth. Our Commitment.`,
+      ``,
+      `Hi ${userName || "there"}, I'm here to help with your GST, income tax & compliance. Feel free to ask me anything — let's grow together!`,
+    ];
+    await ChatMessage.create({
+      senderId: admin._id,
+      senderRole: admin.role,
+      receiverId: userId,
+      content: content.join("\n"),
+      isRead: false,
+    });
+    console.log("[register] Welcome message sent to", userId);
+  } catch (err) {
+    console.error("[register] Welcome message failed:", err.message);
+  }
+}
 
 // POST /api/auth/register  (signup with GST + business fields)
 router.post("/register", async (req, res) => {
@@ -106,6 +132,7 @@ router.post("/register", async (req, res) => {
       }
       const fresh = await User.findById(userId);
       const token = signToken(fresh);
+      await sendAdminWelcome(userId, name.trim());
       return res.status(201).json({
         message: unverified ? "Account updated. Please verify your email." : "Registration successful.",
         token,
@@ -122,6 +149,7 @@ router.post("/register", async (req, res) => {
         userId,
         purpose: "verify",
       });
+      await sendAdminWelcome(userId, name.trim());
       return res.status(201).json({
         message: unverified
           ? "Account updated. A new OTP has been sent to your email."

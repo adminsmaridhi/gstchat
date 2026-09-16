@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { api, setToken, setStoredUser } from "@/lib/api";
+import { api } from "@/lib/api";
+import { useAuth } from "@/components/AuthContext";
 
 export default function VerifyPage() {
   return (
@@ -17,6 +18,7 @@ function VerifyForm() {
   const params = useSearchParams();
   const email = params.get("email") || "";
   const userId = params.get("userId") || "";
+  const { login } = useAuth();
 
   const [digits, setDigits] = useState<string[]>(Array(6).fill(""));
   const [error, setError] = useState("");
@@ -66,8 +68,7 @@ function VerifyForm() {
         method: "POST",
         body: JSON.stringify({ email, code, userId }),
       });
-      setToken(data.token);
-      setStoredUser(data.user);
+      login(data.token, data.user);
       router.push(data.user?.role === "admin" ? "/dashboard/admin" : "/dashboard");
     } catch (err: any) {
       setError(err.message);
