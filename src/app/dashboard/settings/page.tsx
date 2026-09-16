@@ -5,6 +5,7 @@ import DashboardShell from "@/components/DashboardShell";
 import { Spinner } from "@/components/Loader";
 import { useAuth } from "@/components/AuthContext";
 import { api } from "@/lib/api";
+import { gstinIsValid, panIsValid } from "@/lib/validators";
 
 export default function SettingsPage() {
   const { user, updateUser } = useAuth();
@@ -25,9 +26,16 @@ export default function SettingsPage() {
   });
 
   const saveProfile = async () => {
+    const gst = (profile.gstNumber || "").trim().toUpperCase();
+    const pan = (profile.panNumber || "").trim().toUpperCase();
+    if (gst && !gstinIsValid(gst)) return alert("That GST number doesn't look valid.");
+    if (pan && !panIsValid(pan)) return alert("That PAN number doesn't look valid.");
     setSaving(true);
     try {
-      const d = await api<any>("/settings/profile", { method: "PATCH", body: JSON.stringify(profile) });
+      const d = await api<any>("/settings/profile", {
+        method: "PATCH",
+        body: JSON.stringify({ ...profile, gstNumber: gst, panNumber: pan }),
+      });
       updateUser(d.user);
       setSaved("Saved ✓");
       setTimeout(() => setSaved(""), 2000);
@@ -40,7 +48,11 @@ export default function SettingsPage() {
 
   const f = (k: string) => ({
     value: (profile as any)[k],
-    onChange: (e: any) => setProfile({ ...profile, [k]: e.target.value }),
+    onChange: (e: any) => {
+      const raw = e.target.value;
+      const v = ["gstNumber", "panNumber"].includes(k) ? raw.toUpperCase() : raw;
+      setProfile({ ...profile, [k]: v });
+    },
   });
 
   return (
@@ -68,11 +80,17 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className="label">GST Number</label>
-              <input className="input" {...f("gstNumber")} />
+              <input className="input" {...f("gstNumber")} maxLength={15} style={{ textTransform: "uppercase" }} />
+              {profile.gstNumber && !gstinIsValid(profile.gstNumber) && (
+                <p className="mt-1 text-xs text-red-600">Invalid GST number</p>
+              )}
             </div>
             <div>
               <label className="label">PAN Number</label>
-              <input className="input" {...f("panNumber")} />
+              <input className="input" {...f("panNumber")} maxLength={10} style={{ textTransform: "uppercase" }} />
+              {profile.panNumber && !panIsValid(profile.panNumber) && (
+                <p className="mt-1 text-xs text-red-600">Invalid PAN number</p>
+              )}
             </div>
             <div>
               <label className="label">Business Name</label>

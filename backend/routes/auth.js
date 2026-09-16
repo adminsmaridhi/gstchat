@@ -6,6 +6,7 @@ const { signToken, requireAuth } = require("../middleware/auth");
 const { generateOtp } = require("../utils/otp");
 const { otpEnabled, authMode, mailProvider } = require("../config/config");
 const { issueMagicLink, redeemMagicLink, cooldownFor } = require("../utils/magic-link");
+const { gstinIsValid, panIsValid } = require("../utils/validators");
 
 const router = express.Router();
 
@@ -36,6 +37,12 @@ router.post("/register", async (req, res) => {
     if (String(password).length < 6) {
       return res.status(400).json({ error: "Password must be at least 6 characters" });
     }
+    if (gstNumber !== undefined && gstNumber !== null && gstNumber !== "" && !gstinIsValid(String(gstNumber).trim().toUpperCase())) {
+      return res.status(400).json({ error: "Invalid GST number" });
+    }
+    if (panNumber !== undefined && panNumber !== null && panNumber !== "" && !panIsValid(String(panNumber).trim().toUpperCase())) {
+      return res.status(400).json({ error: "Invalid PAN number" });
+    }
 
     const normalizedEmail = String(email).toLowerCase().trim();
     const normalizedUsername = username ? String(username).toLowerCase().trim() : null;
@@ -59,14 +66,14 @@ router.post("/register", async (req, res) => {
       phone: String(phone).trim(),
       password: hashed,
       role: "user",
-      gstNumber: gstNumber || null,
+      gstNumber: gstNumber ? String(gstNumber).trim().toUpperCase() : null,
       businessName: businessName || null,
       businessType: businessType || null,
       address: address || null,
       city: city || null,
       state: state || null,
       pincode: pincode || null,
-      panNumber: panNumber || null,
+      panNumber: panNumber ? String(panNumber).trim().toUpperCase() : null,
       companyEmail: companyEmail || null,
       planId: planId || null,
       planActivatedAt: planId ? new Date() : null,

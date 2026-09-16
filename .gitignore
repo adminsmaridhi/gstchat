@@ -45,3 +45,4 @@ backend/npm-cache/
 *.local
 .env*
 src/lib/api.ts.bak
+src/lib/api.ts.bak

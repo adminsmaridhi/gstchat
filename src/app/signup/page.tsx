@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api, formatINR } from "@/lib/api";
 import { useAuth } from "@/components/AuthContext";
+import { gstinIsValid, panIsValid } from "@/lib/validators";
 
 const BUSINESS_TYPES = [
   "Proprietorship",
@@ -66,17 +67,29 @@ function SignupForm() {
   }, []);
 
   const set = (k: string) => (e: any) => {
-    setForm((f) => ({ ...f, [k]: e.target.value }));
+    const raw = e.target.value;
+    const v = ["gstNumber", "panNumber"].includes(k) ? raw.toUpperCase() : raw;
+    setForm((f) => ({ ...f, [k]: v }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    const gst = form.gstNumber.trim().toUpperCase();
+    const pan = form.panNumber.trim().toUpperCase();
+    if (gst && !gstinIsValid(gst)) {
+      setError("That GST number doesn't look valid. Enter a 15-character GSTIN (e.g. 22AAAAA0000A1Z5).");
+      return;
+    }
+    if (pan && !panIsValid(pan)) {
+      setError("That PAN number doesn't look valid. Format: 5 letters, 4 digits, 1 letter (e.g. ABCDE1234F).");
+      return;
+    }
     setLoading(true);
     try {
       const data = await api<any>("/auth/register", {
         method: "POST",
-        body: JSON.stringify({ ...form, planId: planId || null }),
+        body: JSON.stringify({ ...form, gstNumber: gst, panNumber: pan, planId: planId || null }),
       });
       // If OTP is disabled, the API returns a token and logs you straight in
       if (data.token && data.user) {
@@ -148,7 +161,10 @@ function SignupForm() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="label">GST Number</label>
-                <input className={input} placeholder="22AAAAA0000A1Z5" value={form.gstNumber} onChange={set("gstNumber")} />
+                <input className={input} placeholder="22AAAAA0000A1ZC" value={form.gstNumber} onChange={set("gstNumber")} maxLength={15} style={{ textTransform: "uppercase" }} />
+                {form.gstNumber && !gstinIsValid(form.gstNumber) && (
+                  <p className="mt-1 text-xs text-red-600">Invalid GST number</p>
+                )}
               </div>
               <div>
                 <label className="label">Business Name</label>
@@ -165,7 +181,10 @@ function SignupForm() {
               </div>
               <div>
                 <label className="label">PAN Number</label>
-                <input className={input} placeholder="ABCDE1234F" value={form.panNumber} onChange={set("panNumber")} />
+                <input className={input} placeholder="ABCDE1234F" value={form.panNumber} onChange={set("panNumber")} maxLength={10} style={{ textTransform: "uppercase" }} />
+                {form.panNumber && !panIsValid(form.panNumber) && (
+                  <p className="mt-1 text-xs text-red-600">Invalid PAN number</p>
+                )}
               </div>
               <div className="sm:col-span-2">
                 <label className="label">Registered Address</label>

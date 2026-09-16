@@ -1,6 +1,7 @@
 const express = require("express");
 const UserSettings = require("../models/UserSettings");
 const { requireAuth } = require("../middleware/auth");
+const { gstinIsValid, panIsValid } = require("../utils/validators");
 
 const router = express.Router();
 
@@ -68,6 +69,22 @@ router.patch("/profile", requireAuth, async (req, res) => {
     const body = {};
     for (const key of allowed) {
       if (req.body[key] !== undefined) body[key] = req.body[key];
+    }
+    if (body.gstNumber !== undefined && body.gstNumber !== null && body.gstNumber !== "") {
+      body.gstNumber = String(body.gstNumber).trim().toUpperCase();
+      if (!gstinIsValid(body.gstNumber)) {
+        return res.status(400).json({ error: "Invalid GST number" });
+      }
+    } else if (body.gstNumber === "") {
+      body.gstNumber = null;
+    }
+    if (body.panNumber !== undefined && body.panNumber !== null && body.panNumber !== "") {
+      body.panNumber = String(body.panNumber).trim().toUpperCase();
+      if (!panIsValid(body.panNumber)) {
+        return res.status(400).json({ error: "Invalid PAN number" });
+      }
+    } else if (body.panNumber === "") {
+      body.panNumber = null;
     }
     Object.assign(req.user, body);
     await req.user.save();

@@ -40,18 +40,18 @@ export default function PdfThumb({ url, name }: { url: string; name?: string }) 
   }, [url]);
 
   return (
-    <div className="relative overflow-hidden rounded-lg bg-white">
-      <canvas ref={canvasRef} className={`block w-full ${state === "ok" ? "" : "hidden"}`} />
+    <div className="relative h-full w-full overflow-hidden rounded-lg bg-white">
+      <canvas ref={canvasRef} className={`block h-full w-full object-contain ${state === "ok" ? "" : "hidden"}`} />
       {state === "loading" && (
-        <div className="flex h-24 w-36 flex-col items-center justify-center gap-1 text-xs text-slate-400">
+        <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-xs text-slate-400">
           <span className="text-xl leading-none">📕</span>
           <span>{name || "pdf"}</span>
         </div>
       )}
       {state === "error" && (
-        <div className="flex h-24 w-36 flex-col items-center justify-center gap-1 text-xs text-slate-400">
+        <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-xs text-slate-400">
           <span className="text-xl leading-none">📕</span>
-          <span className="truncate max-w-[130px]">{name || "pdf"}</span>
+          <span className="max-w-[130px] truncate">{name || "pdf"}</span>
         </div>
       )}
       {state === "ok" && (

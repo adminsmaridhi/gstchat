@@ -33,10 +33,12 @@ export default function ChatPage() {
   const [busy, setBusy] = useState(false);
   const [ready, setReady] = useState(false);
   const [preview, setPreview] = useState<any>(null);
+  const [inboxCollapsed, setInboxCollapsed] = useState(false);
   const inFlight = useRef(false);
   const loadSeq = useRef(0);
   const activeRef = useRef<string | null>(null);
   const msgIds = useRef<Set<string>>(new Set());
+  const freshThread = useRef(true);
   const fileRef = useRef<HTMLInputElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -96,16 +98,30 @@ export default function ChatPage() {
     const seen = new Set<string>();
     return [...existing, ...incoming]
       .filter((m) => (seen.has(m._id) ? false : (seen.add(m._id), true)))
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      .sort((a, b) => {
+        const t = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        if (t !== 0) return t;
+        // Equal timestamps: ObjectIds are monotonically increasing, so they
+        // preserve true insertion order as the secondary sort key.
+        return String(a._id).localeCompare(String(b._id));
+      });
   };
 
-  const applyMessages = (incoming: any[], opts?: { keepPosition?: boolean }) => {
+  const applyMessages = (incoming: any[], opts?: { keepPosition?: boolean; forceToBottom?: boolean }) => {
     const newIds = incoming.filter((m) => !msgIds.current.has(m._id)).map((m) => m._id);
+    const el = scrollRef.current;
+    const prevHeight = el?.scrollHeight || 0;
+    const prevTop = el?.scrollTop || 0;
+    setMessages((prev) => mergeMessages(prev, incoming));
+    if (opts?.forceToBottom) {
+      // Fresh thread load: jump to the newest message regardless of dedupe
+      // (mount restores from cache, so the merge may add no new ids) or the
+      // current scroll position (mount starts at the top).
+      scroll();
+      newIds.forEach((id) => msgIds.current.add(id));
+      return;
+    }
     if (newIds.length) {
-      const el = scrollRef.current;
-      const prevHeight = el?.scrollHeight || 0;
-      const prevTop = el?.scrollTop || 0;
-      setMessages((prev) => mergeMessages(prev, incoming));
       if (opts?.keepPosition) {
         // Prepend older history without moving the viewport (stay near the top)
         requestAnimationFrame(() => {
@@ -128,15 +144,23 @@ export default function ChatPage() {
     const seq = ++loadSeq.current;
     const target = activeRef.current;
     try {
-      let url = "/chat";
-      if (isAdmin && target) url = `/chat?with=${encodeURIComponent(target)}`;
-      const d = await api<any>(url);
+      // Admin: always refresh the inbox (previews + unread) AND the open
+      // thread's messages. Fetching only `/chat?with=` skips conversations,
+      // so previews would go stale while a thread stays open.
+      const d = isAdmin
+        ? await Promise.all([
+            api<any>("/chat"),
+            target ? api<any>(`/chat?with=${encodeURIComponent(target)}`) : Promise.resolve(null),
+          ])
+        : [null, await api<any>("/chat")];
+      const [inbox, thread] = d;
       if (seq !== loadSeq.current) return; // superseded by a newer load
       if (isAdmin && target && activeRef.current !== target) return; // switched away mid-flight
-      if (d.conversations) setConversations(d.conversations);
-      if (d.messages) applyMessages(d.messages);
-      if (!isAdmin && !d.messages) setMessages([]);
-      setNextCursor((prev) => (d.nextCursor === undefined ? prev : d.nextCursor));
+      if (inbox?.conversations) setConversations(inbox.conversations);
+      if (thread?.messages) applyMessages(thread.messages, { forceToBottom: freshThread.current });
+      freshThread.current = false;
+      if (!isAdmin && thread && !thread.messages) setMessages([]);
+      if (thread?.nextCursor !== undefined) setNextCursor((prev) => (thread.nextCursor === null ? prev : thread.nextCursor));
       setReady(true);
     } catch {
     } finally {
@@ -165,7 +189,8 @@ export default function ChatPage() {
   }, [isAdmin, loadingOld, nextCursor]);
 
   useEffect(() => {
-    // Invalidate any in-flight requests and immediately load the new thread
+    // Invalidates any in-flight requests and loads the newly selected thread
+    freshThread.current = true;
     loadSeq.current++;
     inFlight.current = false;
     setReady(false);
@@ -312,12 +337,14 @@ export default function ChatPage() {
           <img
             src={m.fileUrl}
             alt={m.fileName}
-            className="max-h-56 cursor-pointer rounded-lg"
+            className="h-56 max-w-full rounded-lg bg-white object-contain"
             onClick={() => openPreview(m)}
           />
         ) : isPdf && typeof window !== "undefined" ? (
           <button type="button" onClick={() => openPreview(m)} className="block w-40 cursor-pointer overflow-hidden rounded-lg transition hover:opacity-90">
-            <PdfThumb url={m.fileUrl} name={m.fileName} />
+            <div className="relative h-52 w-40 bg-white">
+              <PdfThumb url={m.fileUrl} name={m.fileName} />
+            </div>
             <div className="truncate border-t bg-slate-50 px-2 py-1 text-left text-[11px] font-medium text-slate-600">
               📕 {m.fileName}
             </div>
@@ -338,13 +365,32 @@ export default function ChatPage() {
 
   return (
     <DashboardShell>
-      <div className="flex h-[calc(100vh-10rem)] min-h-[480px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        {/* Admin: conversation list */}
-        {isAdmin && (
-          <div className="flex w-64 shrink-0 flex-col border-r border-slate-200 sm:w-72">
-            <div className="border-b border-slate-200 px-4 py-3">
-              <div className="text-sm font-bold text-slate-900">Support Inbox</div>
-              <div className="text-xs text-slate-400">{conversations.length} customer(s)</div>
+      <div className="relative flex h-[calc(100vh-10rem)] min-h-[480px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:h-[calc(100dvh-10rem)]">
+        {/* Admin: conversation list. Mobile: full-width overlay when no thread
+            is open; hidden while chatting (back button returns). Desktop: fixed
+            sidebar beside the thread. */}
+        {isAdmin && !inboxCollapsed && (
+          <div
+            className={`flex-col border-r border-slate-200 ${
+              activeUser
+                ? "hidden md:flex md:w-64 md:shrink-0 md:self-stretch"
+                : "absolute inset-0 z-20 flex w-full bg-white md:static md:inset-auto md:z-auto md:block md:w-64 md:shrink-0"
+            }`}
+          >
+            <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+              <div>
+                <div className="text-sm font-bold text-slate-900">Support Inbox</div>
+                <div className="text-xs text-slate-400">{conversations.length} customer(s)</div>
+              </div>
+              {/* Desktop-only collapse toggle */}
+              <button
+                type="button"
+                onClick={() => setInboxCollapsed(true)}
+                title="Hide inbox"
+                className="hidden h-7 w-7 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 md:grid"
+              >
+                «
+              </button>
             </div>
             <div className="flex-1 overflow-y-auto">
               {conversations.length === 0 && (
@@ -356,40 +402,69 @@ export default function ChatPage() {
                 <button
                   key={c.user.id}
                   onClick={() => openThread(c.user.id)}
-                  className={`convo-in flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left hover:bg-slate-50 ${
+                  className={`relative flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left transition hover:bg-emerald-50/50 ${
                     activeUser === c.user.id ? "bg-emerald-50" : ""
                   }`}
                   style={{ animationDelay: `${Math.min(i, 20) * 50}ms` }}
                 >
-                  <div className="relative">
+                  <span
+                    className={`absolute bottom-0 right-0 top-0 w-1 bg-emerald-600 ${
+                      activeUser === c.user.id ? "" : "hidden"
+                    }`}
+                  />
+                  <div className="relative shrink-0">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white">
                       {(c.user.name || "C")[0]?.toUpperCase()}
                     </div>
-                    {c.user.online && (
-                      <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
-                    )}
+                    <span
+                      className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white ${
+                        c.user.online ? "bg-emerald-500" : "bg-slate-300"
+                      }`}
+                    />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <span className="truncate text-sm font-semibold text-slate-800">{c.user.name}</span>
-                      {c.unread > 0 && (
-                        <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white">
-                          {c.unread}
-                        </span>
-                      )}
+                      <span className="shrink-0 text-[10px] text-slate-400">
+                        {c.lastMessage?.createdAt ? fmt(c.lastMessage.createdAt) : ""}
+                      </span>
                     </div>
                     <div className="truncate text-xs text-slate-500">{lastMsgPreview(c)}</div>
                   </div>
+                  {c.unread > 0 && (
+                    <span className="shrink-0 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                      {c.unread}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
           </div>
         )}
+        {isAdmin && inboxCollapsed && (
+          <button
+            type="button"
+            onClick={() => setInboxCollapsed(false)}
+            title="Show inbox"
+            className="hidden w-9 shrink-0 items-center justify-center rounded-lg text-lg text-slate-400 transition hover:bg-slate-100 hover:text-emerald-700 md:flex"
+          >
+            »
+          </button>
+        )}
 
         {/* Chat panel */}
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className={`flex min-w-0 flex-1 flex-col ${isAdmin && !activeUser ? "hidden md:flex" : ""}`}>
           {/* Header */}
           <div className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3">
+            {isAdmin && (
+              <button
+                className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden"
+                onClick={() => setActiveUser(null)}
+                title="Back to inbox"
+              >
+                ←
+              </button>
+            )}
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white">
               {isAdmin
                 ? (chatPartner?.user?.name || "?")[0]?.toUpperCase()
