@@ -14,12 +14,12 @@ async function sendAdminWelcome(userId, userName) {
     const admin = await User.findOne({ role: "superadmin" }).select("_id role name").lean();
     if (!admin) return;
     const content = [
-      `Welcome to Smaridhi 🎉`,
+      `Welcome to Smaridhi! 🎉`,
       ``,
-      `Your Business. Our Compliance.`,
-      `Your Growth. Our Commitment.`,
+      `Your Business, Our Compliance`,
+      `Your Growth, Our Commitment`,
       ``,
-      `Hi ${userName || "there"}, I'm here to help with your GST, income tax & compliance. Feel free to ask me anything — let's grow together!`,
+      `Let's get started.`,
     ];
     await ChatMessage.create({
       senderId: admin._id,
