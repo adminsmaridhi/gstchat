@@ -44,3 +44,4 @@ backend/node_modules/
 backend/npm-cache/
 *.local
 .env*
+src/lib/api.ts.bak
