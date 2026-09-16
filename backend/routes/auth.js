@@ -185,6 +185,77 @@ router.post("/verify-otp", async (req, res) => {
   }
 });
 
+// POST /api/auth/forgot-password  (request a password-reset OTP)
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const email = String(req.body.email || "").trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: "A valid email is required" });
+    }
+
+    const rl = await rateLimitFor({ email, purpose: "reset" });
+    if (!rl.allow) {
+      return res.status(429).json({ error: "Too many requests. Please wait before trying again.", resendIn: rl.resendIn });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      // Don't leak which emails exist — always say "sent if it exists".
+      return res.json({ message: "If that email is registered, a reset code was sent.", resendIn: 60 });
+    }
+
+    await issueAndDeliverOtp({
+      email: user.email,
+      name: user.name,
+      userId: user._id,
+      purpose: "reset",
+    });
+
+    return res.json({ message: "If that email is registered, a reset code was sent.", resendIn: 60 });
+  } catch (err) {
+    console.error("[forgot-password]", err.message);
+    return res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+// POST /api/auth/reset-password  (verify reset OTP + set a new password)
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { email, code, newPassword } = req.body;
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ error: "email, code and newPassword are required" });
+    }
+    if (String(newPassword).length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
+
+    const result = await verifyOtp({ email, code, purpose: "reset" });
+    if (!result.ok) {
+      const messages = {
+        format: "Please enter a valid 6-digit code.",
+        missing: "No reset code found. Please request a new one.",
+        expired: "Reset code has expired. Please request a new one.",
+        locked: "Too many incorrect attempts. Please request a new code.",
+        mismatch: "Invalid reset code. Please try again.",
+      };
+      return res.status(400).json({ error: messages[result.reason] || "Invalid code." });
+    }
+
+    const user = await User.findById(result.user);
+    if (!user) return res.status(404).json({ error: "Account not found." });
+
+    user.password = await bcrypt.hash(String(newPassword), 10);
+    user.isVerified = true;
+    user.online = false;
+    await user.save();
+
+    return res.json({ message: "Password updated. You can sign in now." });
+  } catch (err) {
+    console.error("[reset-password]", err.message);
+    return res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
 // POST /api/auth/login  (login by email, username or phone)
 router.post("/login", async (req, res) => {
   try {
