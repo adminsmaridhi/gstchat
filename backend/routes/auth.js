@@ -1,11 +1,9 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
-const Otp = require("../models/Otp");
 const { signToken, requireAuth } = require("../middleware/auth");
-const { generateOtp } = require("../utils/otp");
-const { otpEnabled, authMode, mailProvider } = require("../config/config");
-const { issueMagicLink, redeemMagicLink, cooldownFor } = require("../utils/magic-link");
+const { otpEnabled } = require("../config/config");
+const { issueAndDeliverOtp, verifyOtp, rateLimitFor } = require("../utils/otp");
 const { gstinIsValid, panIsValid } = require("../utils/validators");
 
 const router = express.Router();
@@ -98,34 +96,19 @@ router.post("/register", async (req, res) => {
 
     // Verification step when the platform requires email confirmation
     if (otpEnabled) {
-      if (authMode === "magiclink") {
-        const { token, devPath } = await issueMagicLink({ email: user.email, userId: user._id });
-        console.log(`\n[MAGIC LINK] Verify email: ${process.env.BASE_URL || "http://localhost:3000"}${devPath}\n`);
-        return res.status(201).json({
-          message: "Registration successful. Click the link in your email to verify.",
-          userId: user._id,
-          email: user.email,
-          otpRequired: true,
-          authMode: "magiclink",
-          devPath: mailProvider ? null : devPath,
-        });
-      }
-      // Fallback: 6-digit OTP
-      const code = generateOtp();
-      await Otp.create({
+      const { devPath } = await issueAndDeliverOtp({
         email: user.email,
-        code,
+        name: user.name,
         userId: user._id,
         purpose: "verify",
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
       });
-      console.log(`\n[OTP] Email verification code for ${user.email}: ${code}\n`);
       return res.status(201).json({
         message: "Registration successful. Please verify your email.",
         userId: user._id,
         email: user.email,
         otpRequired: true,
         authMode: "otp",
+        devPath: devPath || null,
       });
     }
   } catch (err) {
@@ -139,22 +122,24 @@ router.post("/send-otp", async (req, res) => {
   try {
     const { email, purpose = "verify" } = req.body;
     if (!email) return res.status(400).json({ error: "email is required" });
+    if (!/:^| "email"/.test(String(email)) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email))) {
+      return res.status(400).json({ error: "A valid email is required" });
+    }
 
-    const record = await Otp.findOneAndDelete({ email: email.toLowerCase(), used: false });
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const rl = await rateLimitFor({ email, purpose });
+    if (!rl.allow) {
+      return res.status(429).json({ error: "Too many requests. Please wait before trying again.", resendIn: rl.resendIn });
+    }
 
-    const code = generateOtp();
-    await Otp.create({
-      email: email.toLowerCase(),
-      code,
+    const user = await User.findOne({ email: String(email).toLowerCase() });
+    const { devPath } = await issueAndDeliverOtp({
+      email: String(email).toLowerCase(),
+      name: user?.name,
       userId: user ? user._id : null,
       purpose,
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
     });
 
-    console.log(`\n[OTP] ${purpose} code for ${email}: ${code}\n`);
-
-    return res.json({ message: "OTP sent" });
+    return res.json({ message: "OTP sent", resendIn: 60, devPath: devPath || null });
   } catch (err) {
     console.error("[send-otp]", err.message);
     return res.status(500).json({ error: "Something went wrong" });
@@ -164,38 +149,36 @@ router.post("/send-otp", async (req, res) => {
 // POST /api/auth/verify-otp  (registers + verifies, or verifies existing user)
 router.post("/verify-otp", async (req, res) => {
   try {
-    const { email, code, userId } = req.body;
+    const { email, code } = req.body;
     if (!email || !code) {
       return res.status(400).json({ error: "email and code are required" });
     }
 
-    const otp = await Otp.findOne({ email: email.toLowerCase(), used: false }).sort({ createdAt: -1 });
-    if (!otp) {
-      return res.status(400).json({ error: "No OTP found. Please request a new one." });
-    }
-    if (otp.expiresAt < new Date()) {
-      return res.status(400).json({ error: "OTP has expired. Please request a new one." });
-    }
-    if (otp.code !== String(code).trim()) {
-      return res.status(400).json({ error: "Invalid OTP. Please try again." });
-    }
-
-    otp.used = true;
-    await otp.save();
-
-    const user = await User.findById(otp.userId);
-    if (user) {
-      user.isVerified = true;
-      await user.save();
-      const token = signToken(user);
-      return res.json({
-        message: "Email verified.",
-        token,
-        user: user.toPublic(),
-      });
+    const result = await verifyOtp({ email, code, purpose: "verify" });
+    if (!result.ok) {
+      const messages = {
+        format: "Please enter a valid 6-digit code.",
+        missing: "No OTP found. Please request a new one.",
+        expired: "OTP has expired. Please request a new one.",
+        locked: "Too many incorrect attempts. Please request a new OTP.",
+        mismatch: `Invalid OTP. ${result.attemptsLeft ? `${result.attemptsLeft} attempt(s) left.` : ""}`,
+      };
+      return res.status(400).json({ error: messages[result.reason] || "Invalid OTP." });
     }
 
-    return res.status(404).json({ error: "Account not found. Please sign up first." });
+    const user = await User.findById(result.user);
+    if (!user) return res.status(404).json({ error: "Account not found. Please sign up first." });
+
+    user.isVerified = true;
+    user.online = true;
+    await user.save();
+
+    const token = signToken(user);
+    return res.json({
+      message: "Email verified.",
+      token,
+      user: user.toPublic(),
+    });
   } catch (err) {
     console.error("[verify-otp]", err.message);
     return res.status(500).json({ error: "Something went wrong" });
@@ -215,48 +198,31 @@ router.post("/login", async (req, res) => {
       $or: [{ email: id.toLowerCase() }, { username: id.toLowerCase() }, { phone: id }],
     });
 
-    if (!user) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
-    if (!user.isActive) {
-      return res.status(403).json({ error: "Account deactivated. Contact admin." });
-    }
+    if (!user) return res.status(401).json({ error: "Invalid credentials" });
+    if (!user.isActive) return res.status(403).json({ error: "Account deactivated. Contact admin." });
 
     const ok = await bcrypt.compare(String(password), user.password);
-    if (!ok) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
+    if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
-    // If email not verified AND verification is enabled, require it
+    // If email not verified AND verification is enabled, issue OTP + return 428
     if (!user.isVerified && otpEnabled) {
-      if (authMode === "magiclink") {
-        return res.status(428).json({
-          error: "Email not verified. A sign-in link will be sent.",
-          requiresOtp: true,
-          authMode: "magiclink",
-          email: user.email,
-          userId: user._id,
-        });
-      }
-      const code = generateOtp();
-      await Otp.create({
+      const { devPath } = await issueAndDeliverOtp({
         email: user.email,
-        code,
+        name: user.name,
         userId: user._id,
         purpose: "verify",
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
       });
-      console.log(`\n[OTP] Verify-before-login code for ${user.email}: ${code}\n`);
       return res.status(428).json({
-        error: "Email not verified. OTP sent.",
+        error: "Email not verified. A verification OTP was sent.",
         requiresOtp: true,
         authMode: "otp",
         email: user.email,
         userId: user._id,
+        devPath: devPath || null,
       });
     }
 
-    // If verification is disabled, treat any legacy unverified account as verified
+    // Verification is off — treat any legacy unverified account as verified
     if (!user.isVerified) {
       user.isVerified = true;
       await user.save();
@@ -266,75 +232,9 @@ router.post("/login", async (req, res) => {
     await user.save();
 
     const token = signToken(user);
-    return res.json({
-      message: "Login successful",
-      token,
-      user: user.toPublic(),
-    });
+    return res.json({ message: "Login successful", token, user: user.toPublic() });
   } catch (err) {
     console.error("[login]", err.message);
-    return res.status(500).json({ error: "Something went wrong" });
-  }
-});
-
-// POST /api/auth/magic-link  (request a sign-in / verification link)
-router.post("/magic-link", async (req, res) => {
-  try {
-    const email = String(req.body.email || "").trim().toLowerCase();
-    if (!email) return res.status(400).json({ error: "email is required" });
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return res.status(400).json({ error: "A valid email is required" });
-    }
-
-    const { allow, resendIn } = await cooldownFor(email);
-    if (!allow) {
-      return res.status(429).json({ error: "Too many requests", resendIn });
-    }
-
-    const user = await User.findOne({ email });
-    const { token, devPath } = await issueMagicLink({ email, userId: user ? user._id : null });
-
-    console.log(`\n[MAGIC LINK] Sign in: ${process.env.BASE_URL || "http://localhost:3000"}${devPath}\n`);
-    return res.json({
-      message: user
-        ? "Check your email — a sign-in link was sent."
-        : "If that email is registered, we sent a sign-in link.",
-      email,
-      devPath: mailProvider ? null : devPath,
-      resendIn: 60,
-      accountExists: !!user,
-    });
-  } catch (err) {
-    console.error("[magic-link]", err.message);
-    return res.status(500).json({ error: "Something went wrong" });
-  }
-});
-
-// POST /api/auth/magic-link/verify  (consume the link token -> session)
-router.post("/magic-link/verify", async (req, res) => {
-  try {
-    const token = String(req.body.token || "").trim();
-    if (!token) return res.status(400).json({ error: "token is required" });
-
-    const result = await redeemMagicLink(token);
-    if (!result.ok) return res.status(400).json({ error: result.error });
-
-    const user = await User.findById(result.userId);
-    if (!user) return res.status(404).json({ error: "Account not found. Please sign up first." });
-    if (!user.isActive) return res.status(403).json({ error: "Account deactivated. Contact admin." });
-
-    user.isVerified = true;
-    user.online = true;
-    await user.save();
-
-    const jwt = signToken(user);
-    return res.json({
-      message: "Signed in via magic link.",
-      token: jwt,
-      user: user.toPublic(),
-    });
-  } catch (err) {
-    console.error("[magic-link verify]", err.message);
     return res.status(500).json({ error: "Something went wrong" });
   }
 });

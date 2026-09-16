@@ -9,16 +9,11 @@ import { useAuth } from "@/components/AuthContext";
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
-  const [mode, setMode] = useState<"password" | "magic">("password");
-  const [magicEmail, setMagicEmail] = useState("");
-  const [magicStatus, setMagicStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
-  const [devPath, setDevPath] = useState<string | null>(null);
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  // Magic-link / dev-path UI states (used by the 428 fallback below)
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -31,25 +26,7 @@ export default function LoginPage() {
       login(data.token, data.user);
       router.push("/dashboard/chat");
     } catch (err: any) {
-      // Unverified + magic-link mode: send a sign-in link to the account email
-      if (err.status === 428 && err.data?.authMode === "magiclink" && err.data.email) {
-        setMode("magic");
-        setMagicEmail(err.data.email);
-        setMagicStatus("sending");
-        try {
-          const ml = await api<any>("/auth/magic-link", {
-            method: "POST",
-            body: JSON.stringify({ email: err.data.email }),
-          });
-          setMagicStatus(ml.devPath ? "sent" : "sent");
-          setDevPath(ml.devPath || null);
-        } catch (e2: any) {
-          setMagicStatus("error");
-          setError(e2.message);
-        }
-        return;
-      }
-      // Unverified + OTP: go to the 6-digit verify screen
+      // Unverified account: redirect to the 6-digit OTP verify screen
       if (err.status === 428 && err.data?.requiresOtp) {
         router.push(`/verify?email=${encodeURIComponent(err.data.email)}&userId=${err.data.userId}`);
         return;

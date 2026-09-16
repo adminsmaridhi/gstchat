@@ -80,7 +80,7 @@ function VerifyForm() {
     setError("");
     try {
       await api("/auth/send-otp", { method: "POST", body: JSON.stringify({ email }) });
-      setInfo("A new OTP has been sent. Check the terminal where the backend runs.");
+      setInfo("A new OTP has been sent to your email.");
       setCountdown(30);
     } catch (err: any) {
       setError(err.message);
@@ -113,7 +113,7 @@ function VerifyForm() {
           )}
           {process.env.NODE_ENV === "development" && (
             <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-700">
-              Dev note: In this demo the OTP is printed in the backend terminal since no email provider is wired up.
+              Dev tip: the OTP is delivered to your inbox at <b>{email}</b>.
             </div>
           )}
 
