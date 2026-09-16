@@ -29,8 +29,9 @@ function SignupForm() {
   const router = useRouter();
   const params = useSearchParams();
   const { login } = useAuth();
-  const [plans, setPlans] = useState([]);
+  const [plans, setPlans] = useState<any[]>([]);
   const [planId, setPlanId] = useState(params.get("plan") || "");
+  const [infoPlan, setInfoPlan] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     username: "",
@@ -55,13 +56,11 @@ function SignupForm() {
       .then((d) => {
         setPlans(d.plans);
         const preselected = params.get("plan");
-        const valid = d.plans.find((p: any) => p._id === preselected);
-        if (valid) {
-          setPlanId(valid._id);
-        } else {
-          const popular = d.plans.find((p: any) => p.popular);
-          if (popular) setPlanId(popular._id);
+        if (preselected) {
+          const valid = d.plans.find((p: any) => p._id === preselected);
+          if (valid) setPlanId(valid._id);
         }
+        // Default: no plan selected — user can choose one or proceed with Free
       })
       .catch(() => {});
   }, []);
@@ -216,26 +215,93 @@ function SignupForm() {
               Choose a Plan
             </h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <button
+                type="button"
+                onClick={() => setPlanId("")}
+                className={`rounded-xl border-2 border-dashed p-3 text-left transition ${
+                  !planId
+                    ? "border-emerald-600 bg-emerald-50"
+                    : "border-slate-200 bg-white hover:border-slate-300"
+                }`}
+              >
+                <div className="font-semibold text-sm">No Plan</div>
+                <div className="mt-1 text-base font-bold text-slate-900">
+                  Free
+                  <span className="text-xs font-normal text-slate-500">/ for now</span>
+                </div>
+                <div className="mt-1 text-[11px] leading-snug text-slate-500">
+                  Try it free — add a plan anytime
+                </div>
+              </button>
               {plans.map((p: any) => (
-                <button
+                <div
                   key={p._id}
-                  type="button"
-                  onClick={() => setPlanId(p._id)}
-                  className={`relative rounded-xl border-2 p-3 text-left transition ${
-                    planId === p._id
-                      ? "border-emerald-600 bg-emerald-50"
-                      : "border-slate-200 bg-white hover:border-slate-300"
-                  }`}
+                  className="relative"
+                  onMouseEnter={() => setInfoPlan(p._id)}
+                  onMouseLeave={() => setInfoPlan(null)}
                 >
-                  {p.popular && (
-                    <span className="badge bg-emerald-600 text-white absolute -top-2 right-2">Popular</span>
+                  <button
+                    type="button"
+                    onClick={() => setPlanId(p._id)}
+                    className={`group w-full rounded-xl border-2 p-3 text-left transition ${
+                      planId === p._id
+                        ? "border-emerald-600 bg-emerald-50"
+                        : "border-slate-200 bg-white hover:border-emerald-400 hover:shadow-md"
+                    }`}
+                  >
+                    {p.popular && (
+                      <span className="badge bg-emerald-600 text-white absolute -top-2 right-2">Popular</span>
+                    )}
+                    <div className="flex items-center gap-1.5 font-semibold text-sm">
+                      {p.name}
+                      {p.features?.length > 0 && (
+                        <span
+                          className={`flex h-4 w-4 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold transition group-hover:scale-110`}
+                          title="What's included"
+                        >
+                          i
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-1 text-lg font-bold text-slate-900">
+                      {formatINR(p.price)}
+                      <span className="text-xs font-normal text-slate-500">/{p.billingCycle}</span>
+                    </div>
+                    {p.tagline && (
+                      <div className="mt-1 text-[11px] leading-snug text-slate-500">{p.tagline}</div>
+                    )}
+                    {p.features?.length > 0 && (
+                      <div className="mt-2 text-[11px] font-medium text-emerald-600 group-hover:text-emerald-700">
+                        {infoPlan === p._id ? "▲ See plan details" : "▼ Hover / tap for plan details"}
+                      </div>
+                    )}
+                  </button>
+
+                  {infoPlan === p._id && p.features?.length > 0 && (
+                    <div
+                      onClick={(e) => { e.stopPropagation(); setPlanId(p._id); }}
+                      className="absolute top-full left-0 right-0 z-20 mt-2 cursor-pointer rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 shadow-xl"
+                      style={{ animation: "popIn 0.15s ease-out" }}
+                    >
+                      <div className="mb-2 font-semibold text-emerald-700">{p.name} — What&apos;s included</div>
+                      <ul className="space-y-1.5">
+                        {p.features.map((f: string, i: number) => (
+                          <li key={i} className="flex items-start gap-1.5">
+                            <span className="mt-0.5 text-emerald-600">✓</span>
+                            <span>{f}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setInfoPlan(null); }}
+                        className="mt-2 w-full rounded bg-emerald-50 py-1 text-center text-emerald-700 font-semibold hover:bg-emerald-100"
+                      >
+                        Close
+                      </button>
+                    </div>
                   )}
-                  <div className="font-semibold text-sm">{p.name}</div>
-                  <div className="mt-1 text-lg font-bold text-slate-900">
-                    {formatINR(p.price)}
-                    <span className="text-xs font-normal text-slate-500">/{p.billingCycle}</span>
-                  </div>
-                </button>
+                </div>
               ))}
             </div>
           </div>

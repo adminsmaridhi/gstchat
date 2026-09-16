@@ -35,82 +35,102 @@ router.post("/register", async (req, res) => {
     if (String(password).length < 6) {
       return res.status(400).json({ error: "Password must be at least 6 characters" });
     }
-    if (gstNumber !== undefined && gstNumber !== null && gstNumber !== "" && !gstinIsValid(String(gstNumber).trim().toUpperCase())) {
+    if (gstNumber && !gstinIsValid(String(gstNumber).trim().toUpperCase())) {
       return res.status(400).json({ error: "Invalid GST number" });
     }
-    if (panNumber !== undefined && panNumber !== null && panNumber !== "" && !panIsValid(String(panNumber).trim().toUpperCase())) {
+    if (panNumber && !panIsValid(String(panNumber).trim().toUpperCase())) {
       return res.status(400).json({ error: "Invalid PAN number" });
     }
 
     const normalizedEmail = String(email).toLowerCase().trim();
     const normalizedUsername = username ? String(username).toLowerCase().trim() : null;
 
-    const existing = await User.findOne({
+    // Block only fully verified users
+    const verified = await User.findOne({
       $or: [
-        { email: normalizedEmail },
-        { phone: String(phone).trim() },
-        ...(normalizedUsername ? [{ username: normalizedUsername }] : []),
+        { email: normalizedEmail, isVerified: true },
+        { phone: String(phone).trim(), isVerified: true },
+        ...(normalizedUsername ? [{ username: normalizedUsername, isVerified: true }] : []),
       ],
     });
-    if (existing) {
+    if (verified) {
       return res.status(409).json({ error: "A user with this email, phone or username already exists" });
     }
 
+    // If an unverified account exists for this email, update it and resend OTP
+    const unverified = await User.findOne({ email: normalizedEmail, isVerified: false });
+
+    let userData;
+    let userId;
     const hashed = await bcrypt.hash(String(password), 10);
-    const user = await User.create({
-      name: name.trim(),
-      username: normalizedUsername,
-      email: normalizedEmail,
-      phone: String(phone).trim(),
-      password: hashed,
-      role: "user",
-      gstNumber: gstNumber ? String(gstNumber).trim().toUpperCase() : null,
-      businessName: businessName || null,
-      businessType: businessType || null,
-      address: address || null,
-      city: city || null,
-      state: state || null,
-      pincode: pincode || null,
-      panNumber: panNumber ? String(panNumber).trim().toUpperCase() : null,
-      companyEmail: companyEmail || null,
-      planId: planId || null,
-      planActivatedAt: planId ? new Date() : null,
-    });
 
-    // Create default settings
-    const UserSettings = require("../models/UserSettings");
-    await UserSettings.create({ userId: user._id });
+    if (unverified) {
+      const updates = { name: name.trim(), phone: String(phone).trim(), password: hashed };
+      if (normalizedUsername && normalizedUsername !== unverified.username) updates.username = normalizedUsername;
+      if (gstNumber) updates.gstNumber = String(gstNumber).trim().toUpperCase();
+      if (panNumber) updates.panNumber = String(panNumber).trim().toUpperCase();
+      await User.updateOne({ _id: unverified._id }, { $set: updates });
+      userId = unverified._id;
+      userData = { email: normalizedEmail, name: name.trim() };
+    } else {
+      userData = await User.create({
+        name: name.trim(),
+        username: normalizedUsername,
+        email: normalizedEmail,
+        phone: String(phone).trim(),
+        password: hashed,
+        role: "user",
+        gstNumber: gstNumber ? String(gstNumber).trim().toUpperCase() : null,
+        businessName: businessName || null,
+        businessType: businessType || null,
+        address: address || null,
+        city: city || null,
+        state: state || null,
+        pincode: pincode || null,
+        panNumber: panNumber ? String(panNumber).trim().toUpperCase() : null,
+        companyEmail: companyEmail || null,
+        planId: planId || null,
+        planActivatedAt: planId ? new Date() : null,
+      });
+      userId = userData._id;
 
-    // If OTP is disabled, verify the account immediately
+      // Create default settings
+      const UserSettings = require("../models/UserSettings");
+      await UserSettings.create({ userId: userData._id });
+    }
+
+    // If OTP is disabled, verify immediately
     if (!otpEnabled) {
-      user.isVerified = true;
-      await user.save();
-      const token = signToken(user);
+      if (!unverified) {
+        await User.updateOne({ _id: userId }, { $set: { isVerified: true } });
+      }
+      const fresh = await User.findById(userId);
+      const token = signToken(fresh);
       return res.status(201).json({
-        message: "Registration successful.",
+        message: unverified ? "Account updated. Please verify your email." : "Registration successful.",
         token,
-        user: user.toPublic(),
+        user: fresh.toPublic(),
         otpRequired: false,
       });
     }
 
-    // Verification step when the platform requires email confirmation
-    if (otpEnabled) {
-      const { devPath } = await issueAndDeliverOtp({
-        email: user.email,
-        name: user.name,
-        userId: user._id,
-        purpose: "verify",
-      });
-      return res.status(201).json({
-        message: "Registration successful. Please verify your email.",
-        userId: user._id,
-        email: user.email,
-        otpRequired: true,
-        authMode: "otp",
-        devPath: devPath || null,
-      });
-    }
+    // OTP required — issue and deliver
+    const { devPath } = await issueAndDeliverOtp({
+      email: normalizedEmail,
+      name: name.trim(),
+      userId,
+      purpose: "verify",
+    });
+    return res.status(201).json({
+      message: unverified
+        ? "Account updated. A new OTP has been sent to your email."
+        : "Registration successful. Please verify your email.",
+      userId,
+      email: normalizedEmail,
+      otpRequired: true,
+      authMode: "otp",
+      devPath: devPath || null,
+    });
   } catch (err) {
     console.error("[register]", err.message);
     return res.status(500).json({ error: "Something went wrong" });
