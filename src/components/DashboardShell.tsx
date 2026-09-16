@@ -15,6 +15,20 @@ export default function DashboardShell({
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [planName, setPlanName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user?.planId) {
+      api<any>("/plans")
+        .then((d) => {
+          const p = d.plans.find((x: any) => x._id === user.planId);
+          setPlanName(p ? p.name : null);
+        })
+        .catch(() => {});
+    } else {
+      setPlanName(null);
+    }
+  }, [user?.planId]);
 
   useEffect(() => {
     if (!loading && !user) {

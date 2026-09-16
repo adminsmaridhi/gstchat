@@ -115,22 +115,34 @@ router.post("/register", async (req, res) => {
     }
 
     // OTP required — issue and deliver
-    const { devPath } = await issueAndDeliverOtp({
-      email: normalizedEmail,
-      name: name.trim(),
-      userId,
-      purpose: "verify",
-    });
-    return res.status(201).json({
-      message: unverified
-        ? "Account updated. A new OTP has been sent to your email."
-        : "Registration successful. Please verify your email.",
-      userId,
-      email: normalizedEmail,
-      otpRequired: true,
-      authMode: "otp",
-      devPath: devPath || null,
-    });
+    try {
+      const { devPath } = await issueAndDeliverOtp({
+        email: normalizedEmail,
+        name: name.trim(),
+        userId,
+        purpose: "verify",
+      });
+      return res.status(201).json({
+        message: unverified
+          ? "Account updated. A new OTP has been sent to your email."
+          : "Registration successful. Please verify your email.",
+        userId,
+        email: normalizedEmail,
+        otpRequired: true,
+        authMode: "otp",
+        devPath: devPath || null,
+      });
+    } catch (mailErr) {
+      console.error("[register] Email delivery failed:", mailErr.message);
+      return res.status(500).json({
+        error:
+          "Your account was created but we could not deliver the verification email right now. Please try again in a moment or use 'Resend OTP'.",
+        userId,
+        email: normalizedEmail,
+        otpRequired: true,
+        emailFailed: true,
+      });
+    }
   } catch (err) {
     console.error("[register]", err.message);
     return res.status(500).json({ error: "Something went wrong" });
@@ -152,12 +164,21 @@ router.post("/send-otp", async (req, res) => {
     }
 
     const user = await User.findOne({ email: String(email).toLowerCase() });
-    const { devPath } = await issueAndDeliverOtp({
-      email: String(email).toLowerCase(),
-      name: user?.name,
-      userId: user ? user._id : null,
-      purpose,
-    });
+    let devPath = null;
+    try {
+      ({ devPath } = await issueAndDeliverOtp({
+        email: String(email).toLowerCase(),
+        name: user?.name,
+        userId: user ? user._id : null,
+        purpose,
+      }));
+    } catch (mailErr) {
+      console.error("[send-otp] Email delivery failed:", mailErr.message);
+      return res.status(500).json({
+        error: "Could not deliver the OTP email right now. Please try again shortly.",
+        emailFailed: true,
+      });
+    }
 
     return res.json({ message: "OTP sent", resendIn: 60, devPath: devPath || null });
   } catch (err) {

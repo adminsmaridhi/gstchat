@@ -37,6 +37,8 @@ if (configured) {
 
 /**
  * Send an email. Falls back to logging to the console when SMTP is not set up.
+ * Throws on failure so the caller can surface delivery errors to the user —
+ * it must never silently pretend the email was sent.
  * Resolves { sent, mode, info }.
  */
 async function sendMail({ to, subject, html, text }) {
@@ -54,9 +56,11 @@ async function sendMail({ to, subject, html, text }) {
     });
     return { sent: true, mode: "smtp", messageId: info.messageId };
   } catch (err) {
-    console.error("[mailer]", err.message);
-    console.log(`\n===== EMAIL (send failed -> console) =====\nTo: ${to}\nSubject: ${subject}\n${html || text}\n============================================\n`);
-    return { sent: false, mode: "console", error: err.message };
+    console.error("[mailer] SMTP send failed:", err.message);
+    const e = new Error("Failed to deliver email: " + err.message);
+    e.emailDeliveryFailed = true;
+    e.cause = err;
+    throw e;
   }
 }
 
