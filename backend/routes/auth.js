@@ -7,6 +7,7 @@ const { generateOtp } = require("../utils/otp");
 const { otpEnabled, authMode, mailProvider } = require("../config/config");
 const { issueMagicLink, redeemMagicLink, cooldownFor } = require("../utils/magic-link");
 const { gstinIsValid, panIsValid } = require("../utils/validators");
+const { sendOtpSms } = require("../utils/sms");
 
 const router = express.Router();
 
@@ -120,6 +121,7 @@ router.post("/register", async (req, res) => {
         expiresAt: new Date(Date.now() + 10 * 60 * 1000),
       });
       console.log(`\n[OTP] Email verification code for ${user.email}: ${code}\n`);
+      await sendOtpSms({ phone: user.phone, code, purpose: "verify" });
       return res.status(201).json({
         message: "Registration successful. Please verify your email.",
         userId: user._id,
@@ -153,6 +155,9 @@ router.post("/send-otp", async (req, res) => {
     });
 
     console.log(`\n[OTP] ${purpose} code for ${email}: ${code}\n`);
+    if (user?.phone) {
+      await sendOtpSms({ phone: user.phone, code, purpose });
+    }
 
     return res.json({ message: "OTP sent" });
   } catch (err) {
@@ -247,6 +252,7 @@ router.post("/login", async (req, res) => {
         expiresAt: new Date(Date.now() + 10 * 60 * 1000),
       });
       console.log(`\n[OTP] Verify-before-login code for ${user.email}: ${code}\n`);
+      await sendOtpSms({ phone: user.phone, code, purpose: "verify" });
       return res.status(428).json({
         error: "Email not verified. OTP sent.",
         requiresOtp: true,
