@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SaaSify — Full-Stack Business Platform (React + Node.js + MongoDB)
 
-## Getting Started
+An all-in-one SaaS web app with:
 
-First, run the development server:
+- **Sign up / Login** with email-OTP verification
+- **GST + business fields** collected at signup (GST number, business name/type, address, PAN, etc.)
+- **Pricing plans** (Free / Starter / Professional / Enterprise) with subscribe + admin CRUD
+- **Dashboard** showing profile, GST details, plan status, and activity
+- **Chat** between users and admins — realtime (WebSocket for admin), file uploads (images, PDFs, docs up to 25MB)
+- **Admin panel** — user management, stats, plan breakdown, promote/suspend users
+- **Customization** — theme color, app title, language, timezone, notifications, privacy
+
+## Stack
+
+| Layer    | Tech |
+|----------|------|
+| Frontend | Next.js 14 (React) + Tailwind CSS |
+| Backend  | Node.js + Express + Mongoose |
+| Database | MongoDB (auto in-memory fallback — **no MongoDB install required**) |
+| Auth     | JWT + bcrypt + OTP |
+
+## Running the app
+
+### Option A — One command (both servers)
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+./run.sh
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Option B — Two terminals
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Terminal 1 — backend  (http://localhost:5000)
+cd backend && npm install && npm start
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Terminal 2 — frontend (http://localhost:3000)
+npm install && npm run dev
+```
 
-## Learn More
+Open **http://localhost:3000**.
 
-To learn more about Next.js, take a look at the following resources:
+> If you have a real MongoDB instance, set `MONGODB_URI` in `backend/.env`.
+> Otherwise the backend automatically boots an in-memory MongoDB (data resets on restart).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Default admin (auto-seeded on backend start)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+Email:    admin@example.com
+Password: Admin@123
+```
 
-## Deploy on Vercel
+## OTP / email note
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+No email provider is wired up, so OTP codes are **printed in the backend terminal**
+(e.g. `[OTP] Email verification code for you@company.com: 123456`). Wire up
+nodemailer/SendGrid by adding a mailer to `backend/routes/auth.js` `send-otp` path.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project structure
+
+```
+├── run.sh                     # start both servers with one command
+├── src/                       # Next.js frontend
+│   ├── app/
+│   │   ├── page.tsx           # landing page
+│   │   ├── login/ signup/     # auth pages (signup includes GST fields)
+│   │   ├── verify/            # OTP entry page
+│   │   └── dashboard/         # user dashboard, plans, chat, settings, admin
+│   ├── components/            # AuthContext, DashboardShell
+│   └── lib/api.ts             # fetch wrapper + token/user helpers
+└── backend/                   # Express + Mongoose API
+    ├── server.js              # entry + WebSocket (realtime chat)
+    ├── config/db.js           # Mongo connect w/ in-memory fallback
+    ├── models/                # User, Otp, Plan, ChatMessage, UserSettings
+    ├── middleware/            # auth (JWT), upload (multer)
+    └── routes/                # auth, plans, chat, admin, settings
+```
+
+## API overview (base `http://localhost:5000/api`)
+
+- `POST /auth/register` — signup with GST/business fields → creates OTP
+- `POST /auth/send-otp` — send/resend OTP
+- `POST /auth/verify-otp` — verify OTP → marks verified, returns JWT
+- `POST /auth/login` — login (returns 428 if email not verified)
+- `GET  /auth/me` · `POST /auth/logout`
+- `GET/POST /plans` · `PUT/DELETE /plans/:id` (admin) · `POST /plans/:id/subscribe`
+- `GET/POST /chat` (multipart file upload) · `DELETE /chat/:id` · `WS /ws` (realtime)
+- `GET/PATCH /settings` · `PATCH /settings/profile`
+- `GET /admin/stats` · `GET /admin/users` · `PATCH /admin/users/:id`

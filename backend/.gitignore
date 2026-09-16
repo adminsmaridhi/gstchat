@@ -1,0 +1,10 @@
+.vercel
+node_modules/
+env/
+.env
+.env.*
+!.env.example
+uploads/
+oauth/
+token.json
+*.log

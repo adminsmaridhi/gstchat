@@ -2,26 +2,102 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap");
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --navy: #10233f;
+  --navy2: #17375f;
+  --green: #087f5b;
+  --green2: #10a878;
+  --gold: #d7a83e;
+  --cream: #fffaf0;
+  --light: #f7f9fc;
+  --text: #172033;
+  --muted: #687386;
+  --border: #e5eaf1;
+  --white: #ffffff;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--light);
+  color: var(--text);
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  line-height: 1.6;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+.font-display {
+  font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+}
+.text-navy { color: var(--navy); }
+.text-green { color: var(--green); }
+.bg-navy { background-color: var(--navy); }
+.bg-green { background-color: var(--green); }
+.bg-green2 { background-color: var(--green2); }
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-50;
+    background: linear-gradient(135deg, var(--green), var(--green2));
+    box-shadow: 0 9px 24px rgba(8, 127, 91, 0.22);
   }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 13px 30px rgba(8, 127, 91, 0.3);
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-[#d8dee8] bg-white px-4 py-2.5 text-sm font-bold text-[var(--navy)] transition hover:border-[var(--green)] hover:text-[var(--green)] disabled:opacity-50;
+  }
+  .btn-dark {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold text-white transition disabled:opacity-50;
+    background: var(--navy);
+  }
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-50;
+  }
+  .input {
+    @apply w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm outline-none transition;
+  }
+  .input:focus {
+    border-color: var(--green2);
+    box-shadow: 0 0 0 3px rgba(16, 168, 120, 0.15);
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-slate-700;
+  }
+  .card {
+    @apply rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm;
+  }
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+}
+
+@keyframes msg-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.msg-in {
+  animation: msg-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes convo-in {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.convo-in {
+  animation: convo-in 0.25s ease-out both;
 }

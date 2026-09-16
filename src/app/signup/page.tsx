@@ -1,0 +1,238 @@
+"use client";
+
+import { useState, useEffect, Suspense } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { api, formatINR } from "@/lib/api";
+import { useAuth } from "@/components/AuthContext";
+
+const BUSINESS_TYPES = [
+  "Proprietorship",
+  "Partnership",
+  "LLP",
+  "Private Limited",
+  "Public Limited",
+  "Sole Trader",
+  "Other",
+];
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="p-10 text-center text-slate-500">Loading sign up...</div>}>
+      <SignupForm />
+    </Suspense>
+  );
+}
+
+function SignupForm() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const { login } = useAuth();
+  const [plans, setPlans] = useState([]);
+  const [planId, setPlanId] = useState(params.get("plan") || "");
+  const [form, setForm] = useState({
+    name: "",
+    username: "",
+    email: "",
+    phone: "",
+    password: "",
+    gstNumber: "",
+    businessName: "",
+    businessType: "",
+    address: "",
+    city: "",
+    state: "",
+    pincode: "",
+    panNumber: "",
+    companyEmail: "",
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    api<any>("/plans")
+      .then((d) => {
+        setPlans(d.plans);
+        const preselected = params.get("plan");
+        const valid = d.plans.find((p: any) => p._id === preselected);
+        if (valid) {
+          setPlanId(valid._id);
+        } else {
+          const popular = d.plans.find((p: any) => p.popular);
+          if (popular) setPlanId(popular._id);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const set = (k: string) => (e: any) => {
+    setForm((f) => ({ ...f, [k]: e.target.value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const data = await api<any>("/auth/register", {
+        method: "POST",
+        body: JSON.stringify({ ...form, planId: planId || null }),
+      });
+      // If OTP is disabled, the API returns a token and logs you straight in
+      if (data.token && data.user) {
+        login(data.token, data.user);
+        router.push("/dashboard/chat");
+        return;
+      }
+      router.push(`/verify?email=${encodeURIComponent(data.email)}&userId=${data.userId}`);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const input = "input";
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-50 py-10 px-4">
+      <div className="mx-auto max-w-3xl">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-slate-900">Create your account</h1>
+          <p className="mt-2 text-slate-500">
+            Fill in your details including GST number & business info. We&apos;ll send an OTP to verify your email.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="card space-y-6">
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
+          <div>
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
+              Account Details
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="label">Full Name *</label>
+                <input className={input} placeholder="Rahul Sharma" value={form.name} onChange={set("name")} required />
+              </div>
+              <div>
+                <label className="label">Username *</label>
+                <input className={input} placeholder="e.g. rahul" value={form.username} onChange={set("username")} required />
+              </div>
+              <div>
+                <label className="label">Email *</label>
+                <input type="email" className={input} placeholder="you@company.com" value={form.email} onChange={set("email")} required />
+              </div>
+              <div>
+                <label className="label">Mobile Number *</label>
+                <input className={input} placeholder="9876543210" value={form.phone} onChange={set("phone")} required />
+              </div>
+              <div>
+                <label className="label">Password *</label>
+                <input type="password" className={input} placeholder="Min 6 characters" value={form.password} onChange={set("password")} required minLength={6} />
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-slate-100" />
+
+          <div>
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
+              Business & GST Details
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="label">GST Number</label>
+                <input className={input} placeholder="22AAAAA0000A1Z5" value={form.gstNumber} onChange={set("gstNumber")} />
+              </div>
+              <div>
+                <label className="label">Business Name</label>
+                <input className={input} placeholder="Sharma Traders Pvt Ltd" value={form.businessName} onChange={set("businessName")} />
+              </div>
+              <div>
+                <label className="label">Business Type</label>
+                <select className={input} value={form.businessType} onChange={set("businessType")}>
+                  <option value="">Select type</option>
+                  {BUSINESS_TYPES.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="label">PAN Number</label>
+                <input className={input} placeholder="ABCDE1234F" value={form.panNumber} onChange={set("panNumber")} />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="label">Registered Address</label>
+                <input className={input} placeholder="Shop No. 12, Main Market, MG Road" value={form.address} onChange={set("address")} />
+              </div>
+              <div>
+                <label className="label">City</label>
+                <input className={input} placeholder="Mumbai" value={form.city} onChange={set("city")} />
+              </div>
+              <div>
+                <label className="label">State</label>
+                <input className={input} placeholder="Maharashtra" value={form.state} onChange={set("state")} />
+              </div>
+              <div>
+                <label className="label">Pincode</label>
+                <input className={input} placeholder="400001" value={form.pincode} onChange={set("pincode")} />
+              </div>
+              <div>
+                <label className="label">Company Email</label>
+                <input type="email" className={input} placeholder="billing@company.com" value={form.companyEmail} onChange={set("companyEmail")} />
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-slate-100" />
+
+          <div>
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
+              Choose a Plan
+            </h2>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {plans.map((p: any) => (
+                <button
+                  key={p._id}
+                  type="button"
+                  onClick={() => setPlanId(p._id)}
+                  className={`relative rounded-xl border-2 p-3 text-left transition ${
+                    planId === p._id
+                      ? "border-emerald-600 bg-emerald-50"
+                      : "border-slate-200 bg-white hover:border-slate-300"
+                  }`}
+                >
+                  {p.popular && (
+                    <span className="badge bg-emerald-600 text-white absolute -top-2 right-2">Popular</span>
+                  )}
+                  <div className="font-semibold text-sm">{p.name}</div>
+                  <div className="mt-1 text-lg font-bold text-slate-900">
+                    {formatINR(p.price)}
+                    <span className="text-xs font-normal text-slate-500">/{p.billingCycle}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button type="submit" disabled={loading} className="btn-primary w-full py-3 text-base">
+            {loading ? "Creating account..." : "Create Account & Get OTP"}
+          </button>
+
+          <p className="text-center text-sm text-slate-500">
+            Already have an account?{" "}
+            <Link href="/login" className="font-semibold text-emerald-600 hover:underline">
+              Sign in
+            </Link>
+          </p>
+        </form>
+      </div>
+    </div>
+  );
+}

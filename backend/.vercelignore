@@ -1,0 +1,8 @@
+node_modules
+name=.env
+.env
+npm-cache
+.vercel
+uploads
+server.log
+patch-vercel.cjs
