@@ -14,10 +14,10 @@ async function sendAdminWelcome(userId, userName) {
     const admin = await User.findOne({ role: "superadmin" }).select("_id role name").lean();
     if (!admin) return;
     const content = [
-      `Welcome to Smaridhi! 🎉`,
+      `Hii ${userName || "there"}, Welcome to Smaridhi! 🎉`,
       ``,
-      `Your Business, Our Compliance`,
-      `Your Growth, Our Commitment`,
+      `Your Business, Our Compliance.`,
+      `Your Growth, Our Commitment.`,
       ``,
       `Let's get started.`,
     ];
