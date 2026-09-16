@@ -235,10 +235,12 @@ function SignupForm() {
               </button>
               {plans.map((p: any) => (
                 <div key={p._id} className="flex flex-col">
-                  <button
-                    type="button"
+                  <div
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setPlanId(p._id)}
-                    className={`relative flex w-full flex-col rounded-xl border-2 p-3 text-left transition ${
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setPlanId(p._id); } }}
+                    className={`relative flex w-full cursor-pointer flex-col rounded-xl border-2 p-3.5 text-left transition ${
                       planId === p._id
                         ? "border-emerald-600 bg-emerald-50 ring-2 ring-emerald-600/20"
                         : "border-slate-200 bg-white hover:border-emerald-400 hover:shadow-md"
@@ -252,7 +254,7 @@ function SignupForm() {
                       {p.features?.length > 0 && (
                         <button
                           type="button"
-                          title="What's included"
+                          aria-label="View plan details"
                           onClick={(e) => {
                             e.stopPropagation();
                             setInfoPlan(infoPlan === p._id ? null : p._id);
@@ -276,37 +278,45 @@ function SignupForm() {
                         {p.tagline}
                       </div>
                     )}
-                  </button>
+                  </div>
 
                   {infoPlan === p._id && (
-                    <div
-                      className={`mt-2 rounded-xl border border-emerald-100 bg-emerald-50/60 p-3 text-xs text-slate-700 transition ${
-                        infoPlan === p._id ? "opacity-100" : "opacity-0"
-                      }`}
-                    >
-                      <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-600">
-                        What&apos;s included
+                    <div className="mt-2 overflow-hidden rounded-xl border border-emerald-100 bg-white shadow-sm">
+                      <div className="border-b border-slate-100 bg-emerald-50 px-3 py-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-emerald-700">{p.name}</span>
+                          <span className="text-xs font-semibold text-slate-700">
+                            {formatINR(p.price)}
+                            <span className="text-[10px] text-slate-400">/{p.billingCycle}</span>
+                          </span>
+                        </div>
                       </div>
-                      <ul className="space-y-1.5">
+                      <ul className="space-y-1.5 px-3 py-3">
                         {p.features.map((f: string, i: number) => (
-                          <li key={i} className="flex items-start gap-1.5">
-                            <span className="mt-px flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-emerald-200 text-emerald-700 text-[9px] font-bold">
+                          <li key={i} className="flex items-start gap-2 text-xs text-slate-700">
+                            <span className="mt-px flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white">
                               ✓
                             </span>
-                            <span>{f}</span>
+                            <span className="leading-snug">{f}</span>
                           </li>
                         ))}
                       </ul>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setPlanId(p._id);
-                          setInfoPlan(null);
-                        }}
-                        className="mt-2 w-full rounded-lg bg-emerald-600 py-1.5 text-center text-[11px] font-semibold text-white hover:bg-emerald-700"
-                      >
-                        Select {p.name}
-                      </button>
+                      <div className="px-3 pb-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPlanId(p._id);
+                            setInfoPlan(null);
+                          }}
+                          className={`w-full rounded-lg py-2 text-center text-xs font-semibold transition ${
+                            planId === p._id
+                              ? "cursor-default bg-emerald-100 text-emerald-700"
+                              : "bg-emerald-600 text-white hover:bg-emerald-700"
+                          }`}
+                        >
+                          {planId === p._id ? "Selected" : `Select ${p.name}`}
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
