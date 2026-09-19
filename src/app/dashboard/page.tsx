@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import DashboardShell from "@/components/DashboardShell";
-import Loader from "@/components/Loader";
+import { Skeleton } from "@/components/Skeleton";
 import { useAuth } from "@/components/AuthContext";
-import { api, formatINR, timeAgo } from "@/lib/api";
+import { api, formatINR } from "@/lib/api";
 
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
@@ -24,6 +24,8 @@ export default function DashboardPage() {
         .finally(() => setPlanLoading(false));
     }
   }, [user?.planId]);
+
+  const loading = authLoading || (user?.planId ? planLoading : false);
 
   const rows = [
     ["Name", user?.name],
@@ -68,15 +70,20 @@ export default function DashboardPage() {
           <div>
             <div className="text-sm text-emerald-100">Current Plan</div>
             <div className="mt-1 text-2xl font-black">
-              {planLoading ? (
-                <Loader className="justify-start !h-8" />
+              {loading ? (
+                <Skeleton className="mt-1 h-7 w-48 bg-emerald-300/40" />
               ) : plan ? (
                 plan.name
               ) : (
                 "No plan yet"
               )}
             </div>
-            {plan && (
+            {loading ? (
+              <div className="mt-2 space-y-1.5">
+                <Skeleton className="h-3.5 w-28 bg-emerald-300/40" />
+                <Skeleton className="h-3.5 w-40 bg-emerald-300/40" />
+              </div>
+            ) : plan ? (
               <>
                 <div className="text-sm text-emerald-100">
                   {formatINR(plan.price)}/{plan.billingCycle}
@@ -87,12 +94,12 @@ export default function DashboardPage() {
                   </div>
                 )}
               </>
-            )}
+            ) : null}
           </div>
           <div className="text-right">
             <div className="text-sm text-emerald-100">Status</div>
             <div className="mt-1 text-lg font-bold text-emerald-200">
-              {user?.isVerified ? "✓ Verified" : "Unverified"}
+              {loading ? <Skeleton className="ml-auto h-5 w-24 bg-emerald-300/40" /> : user?.isVerified ? "✓ Verified" : "Unverified"}
             </div>
             <Link href="/dashboard/plans" className="text-sm text-white underline">
               {plan ? "Change plan" : "Choose a plan"}
@@ -110,12 +117,21 @@ export default function DashboardPage() {
           </Link>
         </div>
         <div className="grid gap-x-8 gap-y-4 px-6 py-5 sm:grid-cols-2 lg:grid-cols-3">
-          {rows.map(([k, v]) => (
-            <div key={k}>
-              <div className="text-xs font-medium uppercase tracking-wide text-slate-400">{k}</div>
-              <div className="mt-0.5 text-sm font-medium text-slate-800">{v || "—"}</div>
-            </div>
-          ))}
+          {loading
+            ? rows.map(([k]) => (
+                <div key={k}>
+                  <div className="text-xs font-medium uppercase tracking-wide text-slate-400">{k}</div>
+                  <div className="mt-1.5">
+                    <Skeleton className="h-3.5 w-32" />
+                  </div>
+                </div>
+              ))
+            : rows.map(([k, v]) => (
+                <div key={k}>
+                  <div className="text-xs font-medium uppercase tracking-wide text-slate-400">{k}</div>
+                  <div className="mt-0.5 text-sm font-medium text-slate-800">{v || "—"}</div>
+                </div>
+              ))}
         </div>
       </div>
     </DashboardShell>
