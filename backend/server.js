@@ -201,10 +201,10 @@ async function autoSeed() {
 
   const plans = [
     {
-      name: "Starter",
-      description: "For individuals & freelancers",
+      name: "For Individuals & Freelancers",
+      description: "",
       price: 4999,
-      billingCycle: "year",
+      billingCycle: "yearly",
       features: [
         "ITR Filing",
         "Income & Tax Liability Estimation",
@@ -220,10 +220,10 @@ async function autoSeed() {
       active: true,
     },
     {
-      name: "Business",
-      description: "For MSMEs & startups",
+      name: "For MSMEs & Startups",
+      description: "",
       price: 14999,
-      billingCycle: "year",
+      billingCycle: "yearly",
       features: [
         "GST Registration & Filing",
         "Income Tax Filing",
@@ -239,10 +239,10 @@ async function autoSeed() {
       active: true,
     },
     {
-      name: "Growth",
-      description: "For growing businesses",
+      name: "For Growing Businesses",
+      description: "",
       price: 24999,
-      billingCycle: "year",
+      billingCycle: "yearly",
       features: [
         "Full GST Compliance",
         "Income Tax",
@@ -265,9 +265,9 @@ async function autoSeed() {
       { upsert: true }
     );
   }
-  // Clean up legacy plans (Free/Professional/Enterprise). Scoped to exact legacy
-  // names only, so custom plans created later via the admin API are never swept.
-  await Plan.deleteMany({ name: { $in: ["Free", "Professional", "Enterprise"] } });
+  // Clean up legacy plans. Scoped to exact legacy names only, so custom plans
+  // created later via the admin API are never swept.
+  await Plan.deleteMany({ name: { $in: ["Free", "Professional", "Enterprise", "Starter", "Business", "Growth"] } });
   console.log("[seed] Plans ready");
 }
 
