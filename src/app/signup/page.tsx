@@ -51,6 +51,7 @@ function SignupForm() {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [plansLoading, setPlansLoading] = useState(true);
 
   useEffect(() => {
     api<any>("/plans")
@@ -63,7 +64,8 @@ function SignupForm() {
         }
         // Default: no plan selected — user can choose one or proceed with Free
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setPlansLoading(false));
   }, []);
 
   const set = (k: string) => (e: any) => {
@@ -244,7 +246,18 @@ function SignupForm() {
 
             {/* Plan cards */}
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {plans.map((p: any) => (
+              {plansLoading
+                ? [0, 1, 2].map((i) => (
+                    <div key={i} className="animate-pulse rounded-xl border-2 border-slate-100 bg-slate-50 p-3.5">
+                      <div className="h-3 w-16 rounded bg-slate-200"></div>
+                      <div className="mt-2.5 h-5 w-20 rounded bg-slate-200"></div>
+                      <div className="mt-3 h-3 w-28 rounded bg-slate-200"></div>
+                      <div className="mt-3 border-t border-slate-200 pt-2">
+                        <div className="h-2.5 w-24 rounded bg-slate-200"></div>
+                      </div>
+                    </div>
+                  ))
+                : plans.map((p: any) => (
                 <div
                   key={p._id}
                   role="button"
