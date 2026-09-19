@@ -191,13 +191,13 @@ router.post("/", requireAuth, upload.single("file"), async (req, res) => {
       };
     }
 
-    const baseUrl = process.env.BASE_URL || `https://${req.get("host")}`;
+    const fileKey = file ? uploaded.key : null;
     const message = await ChatMessage.create({
       senderId: req.userId,
       senderRole: req.user.role,
       receiverId,
       content: text,
-      fileUrl: file ? `${baseUrl}${file.fileUrl}` : null,
+      fileUrl: fileKey ? `/api/uploads/${fileKey}` : null,
       fileName: file ? file.fileName : null,
       fileType: file ? file.fileType : null,
       fileSize: file ? file.fileSize : null,

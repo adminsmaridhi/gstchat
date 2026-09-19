@@ -5,7 +5,7 @@ import DashboardShell from "@/components/DashboardShell";
 import { Spinner } from "@/components/Loader";
 import { Skeleton } from "@/components/Skeleton";
 import { useAuth } from "@/components/AuthContext";
-import { api, API_URL, isAdminRole } from "@/lib/api";
+import { api, API_URL, isAdminRole, fetchAuthed } from "@/lib/api";
 import PdfThumb from "@/components/PdfThumb";
 
 const CACHE_KEY = "saas_chat_state";
@@ -33,6 +33,94 @@ function clearAllChatCaches() {
       .filter((k) => k.startsWith(CACHE_KEY))
       .forEach((k) => sessionStorage.removeItem(k));
   } catch {}
+}
+
+/** Resolve a stored file reference to a fetchable URL. The DB must only ever
+ * hold a relative path (`/api/uploads/<key>`) — absolute URLs are never trusted.
+ * Paths that are somehow already absolute are rejected (defensive). */
+function resolveFileUrl(path?: string | null): string | null {
+  if (!path) return null;
+  if (/^https?:\/\//i.test(path)) return null;
+  return `${API_URL}${path.startsWith("/") ? "" : "/"}${path}`;
+}
+
+/** Renders a chat file. Files are auth-protected, so images and previews are
+ * fetched with the Authorization header and shown via a blob URL. */
+function FileBlock({ m, onOpenPreview }: { m: any; onOpenPreview?: (resolvedUrl?: string) => void }) {
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const rawUrl = resolveFileUrl(m.fileUrl);
+  const fileKey = m.fileUrl;
+
+  useEffect(() => {
+    let cancelled = false;
+    const url = resolveFileUrl(fileKey);
+    if (!url) return;
+    setBlobUrl(null);
+    fetchAuthed(url)
+      .then((blob) => {
+        if (cancelled) return;
+        const objUrl = URL.createObjectURL(blob);
+        setBlobUrl(objUrl);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [fileKey]);
+
+  if (!m.fileUrl) return null;
+  const isImg = m.fileType?.startsWith("image/");
+  const isTxt =
+    m.fileType === "text/plain" ||
+    ["txt", "md", "json", "csv", "log"].includes((m.fileName || "").toLowerCase().split(".").pop());
+
+  const isLoading = isImg && !blobUrl;
+
+  if (!isImg && !m.fileType?.startsWith("image/") && (m.fileType === "application/pdf" || (m.fileName || "").toLowerCase().endsWith(".pdf"))) {
+    return (
+      <button
+        type="button"
+        onClick={() => onOpenPreview?.(blobUrl || undefined)}
+        className="block w-40 cursor-pointer overflow-hidden rounded-lg transition hover:opacity-90"
+      >
+        <div className="relative h-52 w-40 bg-white">
+          <PdfThumb url={`${API_URL}${m.fileUrl}`} name={m.fileName} />
+        </div>
+        <div className="truncate border-t bg-slate-50 px-2 py-1 text-left text-[11px] font-medium text-slate-600">
+          📕 {m.fileName}
+        </div>
+      </button>
+    );
+  }
+
+  if (isImg) {
+    return (
+      <div className="block">
+        {isLoading ? (
+          <div className="h-56 w-56 animate-pulse rounded-lg bg-slate-200/70" />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={blobUrl || undefined}
+            alt={m.fileName}
+            className="h-56 max-w-full rounded-lg bg-white object-contain"
+            onClick={() => onOpenPreview?.(blobUrl || undefined)}
+          />
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => onOpenPreview?.(blobUrl || undefined)}
+      className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 text-xs font-medium transition hover:bg-slate-200"
+    >
+      <span>{isTxt ? "📄" : "📎"}</span>
+      <span className="truncate">{m.fileName}</span>
+    </button>
+  );
 }
 
 export default function ChatPage() {
@@ -337,54 +425,36 @@ export default function ChatPage() {
     return `📎 ${lm.fileName || "File"}`;
   };
 
-  const openPreview = async (m: any) => {
-    setPreview({ url: m.fileUrl, name: m.fileName, type: m.fileType, text: "" });
+  const openPreview = async (m: any, resolvedUrl?: string) => {
+    const url = resolveFileUrl(m.fileUrl);
+    if (!url) return;
     const ext = (m.fileName || "").toLowerCase().split(".").pop();
-    if ((m.fileType === "text/plain" || ["txt", "md", "json", "csv", "log"].includes(ext)) && m.fileType !== "application/pdf") {
+    const isTxt =
+      (m.fileType === "text/plain" || ["txt", "md", "json", "csv", "log"].includes(ext)) &&
+      m.fileType !== "application/pdf";
+    setPreview({ url: resolvedUrl || url, name: m.fileName, type: m.fileType, text: "" });
+    if (!resolvedUrl) {
       try {
-        const res = await fetch(m.fileUrl);
-        const text = await res.text();
-        setPreview((p: any) => (p?.url === m.fileUrl ? { ...p, text } : p));
+        const blob = await fetchAuthed(url);
+        const objUrl = URL.createObjectURL(blob);
+        setPreview((p: any) => (p?.url === url ? { ...p, url: objUrl } : p));
+      } catch {}
+    }
+    if (isTxt) {
+      try {
+        const blob = await fetchAuthed(url);
+        const text = await blob.text();
+        setPreview((p: any) => ({ ...p, text }));
       } catch {}
     }
   };
 
   const fileBlock = (m: any) => {
-    if (!m.fileUrl) return null;
-    const isImg = m.fileType?.startsWith("image/");
-    const isPdf = m.fileType === "application/pdf" || (m.fileName || "").toLowerCase().endsWith(".pdf");
-    const isTxt =
-      m.fileType === "text/plain" ||
-      ["txt", "md", "json", "csv", "log"].includes((m.fileName || "").toLowerCase().split(".").pop());
     return (
-      <div className="block">
-        {isImg ? (
-          <img
-            src={m.fileUrl}
-            alt={m.fileName}
-            className="h-56 max-w-full rounded-lg bg-white object-contain"
-            onClick={() => openPreview(m)}
-          />
-        ) : isPdf && typeof window !== "undefined" ? (
-          <button type="button" onClick={() => openPreview(m)} className="block w-40 cursor-pointer overflow-hidden rounded-lg transition hover:opacity-90">
-            <div className="relative h-52 w-40 bg-white">
-              <PdfThumb url={m.fileUrl} name={m.fileName} />
-            </div>
-            <div className="truncate border-t bg-slate-50 px-2 py-1 text-left text-[11px] font-medium text-slate-600">
-              📕 {m.fileName}
-            </div>
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => openPreview(m)}
-            className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 text-xs font-medium transition hover:bg-slate-200"
-          >
-            <span>{isTxt ? "📄" : "📎"}</span>
-            <span className="truncate">{m.fileName}</span>
-          </button>
-        )}
-      </div>
+      <FileBlock
+        m={m}
+        onOpenPreview={(resolvedUrl?: string) => openPreview(m, resolvedUrl)}
+      />
     );
   };
 

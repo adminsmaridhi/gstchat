@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { fetchAuthed } from "@/lib/api";
 
 export default function PdfThumb({ url, name }: { url: string; name?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -13,7 +14,11 @@ export default function PdfThumb({ url, name }: { url: string; name?: string }) 
       try {
         const pdfjs = await import("pdfjs-dist");
         pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-        const doc = await pdfjs.getDocument({ url }).promise;
+        // Files are auth-protected, so fetch with the token and load directly.
+        const blob = await fetchAuthed(url);
+        const buf = new Uint8Array(await blob.arrayBuffer());
+        if (cancelled) return;
+        const doc = await pdfjs.getDocument({ data: buf }).promise;
         if (cancelled) return;
         setPages(doc.numPages);
         const page = await doc.getPage(1);

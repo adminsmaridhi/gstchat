@@ -81,6 +81,21 @@ export async function api<T = any>(
   return data as T;
 }
 
+/** Fetch a file URL with the auth token attached (for images, PDFs, previews). */
+export async function fetchAuthed(url: string): Promise<Blob> {
+  const token = getToken();
+  const res = await fetch(url, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const error: any = new Error(`File request failed (${res.status})`);
+    error.status = res.status;
+    throw error;
+  }
+  return res.blob();
+}
+
 export function formatINR(n: number) {
   return "₹" + Number(n).toLocaleString("en-IN");
 }

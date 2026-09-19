@@ -12,6 +12,7 @@ const User = require("./models/User");
 const Plan = require("./models/Plan");
 const UserSettings = require("./models/UserSettings");
 const { setAdminSocket } = require("./utils/ws");
+const { requireAuth, isAdminRole } = require("./middleware/auth");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -133,14 +134,21 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve chat uploads from Cloudflare R2 (falls back to local disk if unconfigured)
-app.get("/api/uploads/:key", async (req, res) => {
+// Serve chat uploads from Cloudflare R2 (falls back to local disk if unconfigured).
+// Requires authentication and only the sender (or an admin) may fetch a file.
+// File keys embed the sender ObjectId: chat_<ts>-<rand>-<senderId>.<ext>
+app.get("/api/uploads/:key", requireAuth, async (req, res) => {
   try {
+    const key = String(req.params.key);
+    const senderId = key.replace(/\.[^.]+$/, "").match(/[0-9a-f]{24}$/)?.[0];
+    if ((senderId && senderId !== req.userId && !isAdminRole(req.user.role)) || (!senderId && !isAdminRole(req.user.role))) {
+      return res.status(403).json({ error: "Not allowed" });
+    }
     const { getObject } = require("./utils/r2");
-    const obj = await getObject(req.params.key);
+    const obj = await getObject(key);
     if (!obj) return res.status(404).json({ error: "File not found" });
     res.setHeader("Content-Type", obj.contentType);
-    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    res.setHeader("Cache-Control", "private, max-age=300");
     res.setHeader("Content-Length", obj.size);
     obj.stream.pipe(res);
   } catch (err) {
