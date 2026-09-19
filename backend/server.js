@@ -168,7 +168,7 @@ app.get("/api/uploads/:key", requireAuth, async (req, res) => {
     obj.stream.pipe(res);
   } catch (err) {
     console.error("[uploads]", err.message);
-    return res.status(404).json({ error: "File not found" });
+    return res.status(404).json({ error: "File not found", detail: err.message });
   }
 });
 
