@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthContext";
 import { api, isAdminRole } from "@/lib/api";
+import { MessageCircle } from "lucide-react";
 
 export default function DashboardShell({
   children,
@@ -159,6 +160,18 @@ export default function DashboardShell({
       </header>
 
       <main className="mx-auto max-w-6xl p-4 md:p-6">{children}</main>
+
+      {/* Floating WhatsApp connect button */}
+      <a
+        href="https://wa.me/919693959083?text=Hi%20SMRIDHI%2C%20I%20need%20help%20with%20my%20compliance"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-3 text-sm font-bold text-white shadow-lg transition hover:scale-105"
+        title="Connect on WhatsApp"
+      >
+        <MessageCircle className="h-5 w-5" />
+        <span className="hidden sm:inline">WhatsApp</span>
+      </a>
     </div>
   );
 }

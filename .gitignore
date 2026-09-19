@@ -47,3 +47,9 @@ backend/npm-cache/
 src/lib/api.ts.bak
 src/lib/api.ts.bak
 npm-cache/
+
+# SMRIDHI: do not track personal / internal files
+shots/
+SESSION-SUMMARY.md
+SaaSify-Testing-Report.pdf
+backend/scripts/

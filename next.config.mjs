@@ -1,11 +1,11 @@
-const backend = "https://backend-theta-ten-46.vercel.app";
+const backend = "https://smaridhi-backend.vercel.app";
 const nextConfig = {
   reactStrictMode: true,
   async rewrites() {
     return [
       {
         source: "/api/:path*",
-        destination: "https://backend-theta-ten-46.vercel.app/api/:path*",
+        destination: "https://smaridhi-backend.vercel.app/api/:path*",
       },
     ];
   },

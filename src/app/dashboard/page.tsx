@@ -47,9 +47,19 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold text-slate-900">My Account</h1>
           <p className="text-sm text-slate-500">Your profile, GST & plan details.</p>
         </div>
-        <Link href="/dashboard/chat" className="btn-primary">
-          💬 Open Chat
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href="https://wa.me/919693959083?text=Hi%20SMRIDHI%2C%20I%20need%20help%20with%20my%20compliance"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-secondary"
+          >
+            💬 Connect on WhatsApp
+          </a>
+          <Link href="/dashboard/chat" className="btn-primary">
+            Open Chat
+          </Link>
+        </div>
       </div>
 
       {/* Plan card */}

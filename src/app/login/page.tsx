@@ -97,10 +97,6 @@ export default function LoginPage() {
             </Link>
           </p>
         </form>
-
-        <p className="mt-6 text-center text-xs text-slate-400">
-          Admin: admin@example.com / Admin@123
-        </p>
       </div>
     </div>
   );

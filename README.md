@@ -51,9 +51,11 @@ Password: Admin@123
 
 ## OTP / email note
 
-No email provider is wired up, so OTP codes are **printed in the backend terminal**
-(e.g. `[OTP] Email verification code for you@company.com: 123456`). Wire up
-nodemailer/SendGrid by adding a mailer to `backend/routes/auth.js` `send-otp` path.
+OTP emails are delivered via **Resend** (transactional email API). Set
+`RESEND_API_KEY` and `RESEND_FROM` in `backend/.env` (or Vercel env vars).
+Requires a verified domain in Resend to send to arbitrary recipients; without
+it, delivery falls back to the Resend sandbox. Without any mail config, OTP
+codes are printed to the backend terminal.
 
 ## Project structure
 

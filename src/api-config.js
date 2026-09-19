@@ -1,3 +1,3 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://backend-theta-ten-46.vercel.app";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://smaridhi-backend.vercel.app";
 
 module.exports = { API_URL };
