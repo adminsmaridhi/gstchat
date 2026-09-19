@@ -10,6 +10,7 @@ const mongoose = require("mongoose");
 const { connectDB, disconnectDB } = require("./config/db");
 const User = require("./models/User");
 const Plan = require("./models/Plan");
+const ChatMessage = require("./models/ChatMessage");
 const UserSettings = require("./models/UserSettings");
 const { setAdminSocket } = require("./utils/ws");
 const { requireAuth, isAdminRole } = require("./middleware/auth");
@@ -144,7 +145,6 @@ app.get("/api/uploads/:key", requireAuth, async (req, res) => {
     const rel = `/api/uploads/${key}`;
     const isAdmin = isAdminRole(req.user.role);
     if (!isAdmin) {
-      const { ChatMessage } = require("./models/ChatMessage");
       const msg = await ChatMessage.findOne({ fileUrl: rel }).exec();
       const allowed =
         msg &&
