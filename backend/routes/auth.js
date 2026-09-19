@@ -5,7 +5,7 @@ const ChatMessage = require("../models/ChatMessage");
 const { signToken, requireAuth } = require("../middleware/auth");
 const { otpEnabled } = require("../config/config");
 const { issueAndDeliverOtp, verifyOtp, rateLimitFor } = require("../utils/otp");
-const { gstinIsValid, panIsValid } = require("../utils/validators");
+const { gstinIsValid, panIsValid, phoneIsValid, normalizePhone, usernameIsValid, emailIsValid, nameIsValid, pincodeIsValid } = require("../utils/validators");
 
 const router = express.Router();
 
@@ -61,6 +61,24 @@ router.post("/register", async (req, res) => {
     if (String(password).length < 6) {
       return res.status(400).json({ error: "Password must be at least 6 characters" });
     }
+    const normalizedPhone = normalizePhone(phone);
+    if (!phoneIsValid(normalizedPhone)) {
+      return res.status(400).json({ error: "Invalid phone number. Enter a valid 10-digit Indian mobile number." });
+    }
+    if (!nameIsValid(name)) {
+      return res.status(400).json({ error: "Name should be 2–60 characters and start with a letter." });
+    }
+    const normalizedEmail = String(email).toLowerCase().trim();
+    if (!emailIsValid(normalizedEmail)) {
+      return res.status(400).json({ error: "Enter a valid email address" });
+    }
+    const normalizedUsername = username ? String(username).toLowerCase().trim() : null;
+    if (normalizedUsername && !usernameIsValid(normalizedUsername)) {
+      return res.status(400).json({ error: "Username must be 3–20 characters (letters, numbers, underscore) and start with a letter." });
+    }
+    if (pincode && !pincodeIsValid(pincode)) {
+      return res.status(400).json({ error: "Pincode must be 6 digits" });
+    }
     if (gstNumber && !gstinIsValid(String(gstNumber).trim().toUpperCase())) {
       return res.status(400).json({ error: "Invalid GST number" });
     }
@@ -68,21 +86,18 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ error: "Invalid PAN number" });
     }
 
-    const normalizedEmail = String(email).toLowerCase().trim();
-    const normalizedUsername = username ? String(username).toLowerCase().trim() : null;
-
     // Block only fully verified users
     const verified = await User.findOne({
       $or: [
         { email: normalizedEmail, isVerified: true },
-        { phone: String(phone).trim(), isVerified: true },
+        { phone: normalizedPhone, isVerified: true },
         ...(normalizedUsername ? [{ username: normalizedUsername, isVerified: true }] : []),
       ],
     });
     if (verified) {
       const clashes = [];
       if (String(verified.email || "").toLowerCase() === normalizedEmail) clashes.push("email");
-      if (String(verified.phone || "").trim() === String(phone).trim()) clashes.push("phone");
+      if (String(verified.phone || "").trim() === normalizedPhone) clashes.push("phone");
       if (normalizedUsername && String(verified.username || "").toLowerCase() === normalizedUsername) clashes.push("username");
       const fields = clashes.length ? "this " + clashes.join(" and this ") : "this email, phone or username";
       return res.status(409).json({
@@ -100,7 +115,7 @@ router.post("/register", async (req, res) => {
     const hashed = await bcrypt.hash(String(password), 10);
 
     if (unverified) {
-      const updates = { name: name.trim(), phone: String(phone).trim(), password: hashed };
+      const updates = { name: name.trim(), phone: normalizedPhone, password: hashed };
       if (normalizedUsername && normalizedUsername !== unverified.username) updates.username = normalizedUsername;
       if (gstNumber) updates.gstNumber = String(gstNumber).trim().toUpperCase();
       if (panNumber) updates.panNumber = String(panNumber).trim().toUpperCase();
@@ -113,7 +128,7 @@ router.post("/register", async (req, res) => {
           name: name.trim(),
           username: normalizedUsername,
           email: normalizedEmail,
-          phone: String(phone).trim(),
+          phone: normalizedPhone,
           password: hashed,
           role: "user",
           gstNumber: gstNumber ? String(gstNumber).trim().toUpperCase() : null,
@@ -199,7 +214,7 @@ router.post("/send-otp", async (req, res) => {
   try {
     const { email, purpose = "verify" } = req.body;
     if (!email) return res.status(400).json({ error: "email is required" });
-    if (!/:^| "email"/.test(String(email)) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email))) {
+    if (!emailIsValid(email)) {
       return res.status(400).json({ error: "A valid email is required" });
     }
 
@@ -275,7 +290,7 @@ router.post("/verify-otp", async (req, res) => {
 router.post("/forgot-password", async (req, res) => {
   try {
     const email = String(req.body.email || "").trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!emailIsValid(email)) {
       return res.status(400).json({ error: "A valid email is required" });
     }
 
@@ -310,6 +325,9 @@ router.post("/reset-password", async (req, res) => {
     const { email, code, newPassword } = req.body;
     if (!email || !code || !newPassword) {
       return res.status(400).json({ error: "email, code and newPassword are required" });
+    }
+    if (!emailIsValid(String(email))) {
+      return res.status(400).json({ error: "A valid email is required" });
     }
     if (String(newPassword).length < 6) {
       return res.status(400).json({ error: "Password must be at least 6 characters" });
@@ -352,7 +370,12 @@ router.post("/login", async (req, res) => {
 
     const id = identifier.trim();
     const user = await User.findOne({
-      $or: [{ email: id.toLowerCase() }, { username: id.toLowerCase() }, { phone: id }],
+      $or: [
+        { email: id.toLowerCase() },
+        { username: id.toLowerCase() },
+        { phone: id },
+        { phone: /^[6-9]/g.test(id) ? normalizePhone(id) : id },
+      ],
     });
 
     if (!user) return res.status(401).json({ error: "Invalid credentials" });

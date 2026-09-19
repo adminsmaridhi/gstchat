@@ -1,5 +1,10 @@
 const GSTIN_RE = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 const PAN_RE = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+const PHONE_RE = /^[6-9][0-9]{9}$/;
+const USERNAME_RE = /^[a-z][a-z0-9_]{2,19}$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const NAME_RE = /^[a-zA-Z][a-zA-Z&'.\- ]{1,59}$/;
+const PINCODE_RE = /^[0-9]{6}$/;
 
 const VALID_GST_CHARSET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -25,4 +30,49 @@ function panIsValid(pan) {
   return Boolean(value && PAN_RE.test(value));
 }
 
-module.exports = { gstinIsValid, panIsValid };
+// Indian mobile: 10 digits, starting 6–9. Optionally strips a leading +91 / 91.
+function phoneIsValid(phone) {
+  const value = String(phone || "").trim().replace(/^(?:\+?91|0)/, "");
+  return Boolean(value && PHONE_RE.test(value));
+}
+
+function normalizePhone(phone) {
+  const value = String(phone || "").trim().replace(/^(?:\+?91|0)/, "");
+  return value;
+}
+
+// Lowercase, alphanumeric + underscore username (3–20 chars, starts with a letter).
+function normalizeUsername(username) {
+  return String(username || "").trim().toLowerCase();
+}
+
+function usernameIsValid(username) {
+  return USERNAME_RE.test(String(username || "").trim().toLowerCase());
+}
+
+// Standard email format (full addresses only).
+function emailIsValid(email) {
+  return EMAIL_RE.test(String(email || "").trim());
+}
+
+// Human name: starts with a letter, letters/numbers/&.'- and spaces, 2–60 chars.
+function nameIsValid(name) {
+  return NAME_RE.test(String(name || "").trim().replace(/\s+/g, " "));
+}
+
+// Indian PIN code: 6 digits.
+function pincodeIsValid(pincode) {
+  return PINCODE_RE.test(String(pincode || "").trim());
+}
+
+module.exports = {
+  gstinIsValid,
+  panIsValid,
+  phoneIsValid,
+  normalizePhone,
+  normalizeUsername,
+  usernameIsValid,
+  emailIsValid,
+  nameIsValid,
+  pincodeIsValid,
+};

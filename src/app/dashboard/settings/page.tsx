@@ -6,7 +6,7 @@ import { Spinner } from "@/components/Loader";
 import { Skeleton } from "@/components/Skeleton";
 import { useAuth } from "@/components/AuthContext";
 import { api } from "@/lib/api";
-import { gstinIsValid, panIsValid } from "@/lib/validators";
+import { gstinIsValid, panIsValid, phoneIsValid, nameIsValid, pincodeIsValid } from "@/lib/validators";
 
 const FIELDS = ["name", "phone", "gstNumber", "panNumber", "businessName", "businessType", "address", "city", "state", "pincode", "companyEmail"];
 
@@ -33,6 +33,10 @@ export default function SettingsPage() {
     const pan = (profile.panNumber || "").trim().toUpperCase();
     if (gst && !gstinIsValid(gst)) return alert("That GST number doesn't look valid.");
     if (pan && !panIsValid(pan)) return alert("That PAN number doesn't look valid.");
+    if (profile.phone && !phoneIsValid(profile.phone)) return alert("Enter a valid 10-digit Indian mobile number.");
+    if (profile.name && !nameIsValid(profile.name)) return alert("Name should be 2–60 characters and start with a letter.");
+    if (profile.pincode && !pincodeIsValid(profile.pincode)) return alert("Pincode must be 6 digits.");
+    if (profile.companyEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(profile.companyEmail)) return alert("Enter a valid company email address.");
     setSaving(true);
     try {
       const d = await api<any>("/settings/profile", {
@@ -85,11 +89,17 @@ export default function SettingsPage() {
             <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="label">Name</label>
-              <input className="input" {...f("name")} />
+              <input className="input" {...f("name")} minLength={2} maxLength={60} />
+              {profile.name && !nameIsValid(profile.name) && (
+                <p className="mt-1 text-xs text-red-600">Name should start with a letter (2–60 chars)</p>
+              )}
             </div>
             <div>
               <label className="label">Phone</label>
-              <input className="input" {...f("phone")} />
+              <input inputMode="numeric" maxLength={10} pattern="[6-9][0-9]{9}" className="input" {...f("phone")} />
+              {profile.phone && !phoneIsValid(profile.phone) && (
+                <p className="mt-1 text-xs text-red-600">Enter a valid 10-digit mobile number</p>
+              )}
             </div>
             <div>
               <label className="label">GST Number</label>
@@ -127,11 +137,14 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className="label">Pincode</label>
-              <input className="input" {...f("pincode")} />
+              <input inputMode="numeric" maxLength={6} pattern="[0-9]{6}" className="input" {...f("pincode")} />
+              {profile.pincode && !pincodeIsValid(profile.pincode) && (
+                <p className="mt-1 text-xs text-red-600">Pincode must be 6 digits</p>
+              )}
             </div>
             <div>
               <label className="label">Company Email</label>
-              <input className="input" {...f("companyEmail")} />
+              <input type="email" className="input" {...f("companyEmail")} />
             </div>
           </div>
           )}

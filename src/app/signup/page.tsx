@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api, formatINR } from "@/lib/api";
 import { useAuth } from "@/components/AuthContext";
-import { gstinIsValid, panIsValid } from "@/lib/validators";
+import { gstinIsValid, panIsValid, phoneIsValid, nameIsValid, usernameIsValid, pincodeIsValid } from "@/lib/validators";
 import { X } from "lucide-react";
 
 const BUSINESS_TYPES = [
@@ -87,6 +87,22 @@ function SignupForm() {
       setError("That PAN number doesn't look valid. Format: 5 letters, 4 digits, 1 letter (e.g. ABCDE1234F).");
       return;
     }
+    if (!phoneIsValid(form.phone)) {
+      setError("Enter a valid 10-digit Indian mobile number.");
+      return;
+    }
+    if (!nameIsValid(form.name)) {
+      setError("Name should be 2–60 characters and start with a letter.");
+      return;
+    }
+    if (form.username && !usernameIsValid(form.username)) {
+      setError("Username must be 3–20 characters (letters, numbers, underscore) and start with a letter.");
+      return;
+    }
+    if (form.pincode && !pincodeIsValid(form.pincode)) {
+      setError("Pincode must be 6 digits.");
+      return;
+    }
     setLoading(true);
     try {
       const data = await api<any>("/auth/register", {
@@ -133,11 +149,11 @@ function SignupForm() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="label">Full Name *</label>
-                <input className={input} placeholder="Rahul Sharma" value={form.name} onChange={set("name")} required />
+                <input className={input} placeholder="Rahul Sharma" minLength={2} maxLength={60} value={form.name} onChange={set("name")} required />
               </div>
               <div>
                 <label className="label">Username *</label>
-                <input className={input} placeholder="e.g. rahul" value={form.username} onChange={set("username")} required />
+                <input className={input} placeholder="e.g. rahul" minLength={3} maxLength={20} pattern="[a-z][a-z0-9_]{2,19}" value={form.username} onChange={set("username")} required />
               </div>
               <div>
                 <label className="label">Email *</label>
@@ -145,7 +161,7 @@ function SignupForm() {
               </div>
               <div>
                 <label className="label">Mobile Number *</label>
-                <input className={input} placeholder="9876543210" value={form.phone} onChange={set("phone")} required />
+                <input inputMode="numeric" maxLength={10} pattern="[6-9][0-9]{9}" className={input} placeholder="9876543210" value={form.phone} onChange={set("phone")} required />
               </div>
               <div>
                 <label className="label">Password *</label>
@@ -202,7 +218,7 @@ function SignupForm() {
               </div>
               <div>
                 <label className="label">Pincode</label>
-                <input className={input} placeholder="400001" value={form.pincode} onChange={set("pincode")} />
+                <input inputMode="numeric" maxLength={6} pattern="[0-9]{6}" className={input} placeholder="400001" value={form.pincode} onChange={set("pincode")} />
               </div>
               <div>
                 <label className="label">Company Email</label>

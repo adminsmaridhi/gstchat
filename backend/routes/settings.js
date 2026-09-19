@@ -1,7 +1,7 @@
 const express = require("express");
 const UserSettings = require("../models/UserSettings");
 const { requireAuth } = require("../middleware/auth");
-const { gstinIsValid, panIsValid } = require("../utils/validators");
+const { gstinIsValid, panIsValid, phoneIsValid, normalizePhone, nameIsValid, emailIsValid, pincodeIsValid } = require("../utils/validators");
 
 const router = express.Router();
 
@@ -85,6 +85,36 @@ router.patch("/profile", requireAuth, async (req, res) => {
       }
     } else if (body.panNumber === "") {
       body.panNumber = null;
+    }
+    if (body.phone !== undefined) {
+      const p = normalizePhone(body.phone);
+      if (!phoneIsValid(p)) {
+        return res.status(400).json({ error: "Invalid phone number. Enter a valid 10-digit Indian mobile number." });
+      }
+      body.phone = p;
+    }
+    if (body.name !== undefined) {
+      if (!nameIsValid(body.name)) {
+        return res.status(400).json({ error: "Name should be 2–60 characters and start with a letter." });
+      }
+      body.name = String(body.name).trim().replace(/\s+/g, " ");
+    }
+    if (body.pincode !== undefined && body.pincode !== null && body.pincode !== "") {
+      if (!pincodeIsValid(body.pincode)) {
+        return res.status(400).json({ error: "Pincode must be 6 digits" });
+      }
+      body.pincode = String(body.pincode).trim();
+    } else if (body.pincode === "") {
+      body.pincode = null;
+    }
+    if (body.companyEmail !== undefined && body.companyEmail !== null && body.companyEmail !== "") {
+      const ce = String(body.companyEmail).toLowerCase().trim();
+      if (!emailIsValid(ce)) {
+        return res.status(400).json({ error: "Enter a valid company email address" });
+      }
+      body.companyEmail = ce;
+    } else if (body.companyEmail === "") {
+      body.companyEmail = null;
     }
     Object.assign(req.user, body);
     await req.user.save();
