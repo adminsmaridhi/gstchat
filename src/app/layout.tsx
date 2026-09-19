@@ -12,6 +12,10 @@ export const metadata: Metadata = {
   },
   description:
     "Smaridhi helps Indian businesses manage GST, Income Tax, Accounting, Bookkeeping and ROC compliance with dedicated expert support and WhatsApp-first communication.",
+  icons: {
+    icon: ["/icon.png", "/favicon.ico"],
+    apple: ["/apple-icon.png"],
+  },
   keywords: [
     "GST registration",
     "GST filing",
