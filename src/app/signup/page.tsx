@@ -290,7 +290,7 @@ function SignupForm() {
                           e.stopPropagation();
                           setInfoPlan(infoPlan === p._id ? null : p._id);
                         }}
-                        className="ml-auto flex h-5 w-5 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-xs font-bold text-emerald-600 transition group-hover:border-emerald-400 group-hover:bg-emerald-500 group-hover:text-white"
+                        className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-emerald-50 text-xs font-bold text-emerald-600 transition group-hover:bg-emerald-500 group-hover:text-white"
                       >
                         {infoPlan === p._id ? "✕" : "ℹ"}
                       </button>
