@@ -86,7 +86,7 @@ export default function Home() {
             <a href="#faq" className="transition hover:text-[#085C44]">FAQ</a>
           </nav>
           <div className="hidden items-center gap-2.5 md:flex">
-            <a href="https://wa.me/919693959083" className="btn-secondary" style={{ borderRadius: 10 }}>
+            <a href="https://wa.me/919693959083" target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ borderRadius: 10 }}>
               <MessageCircle className="h-4 w-4" style={{ color: "#085C44" }} /> WhatsApp
             </a>
             {user ? (
@@ -136,9 +136,15 @@ export default function Home() {
             </div>
             <div className="flex flex-wrap gap-3">
               <Link href={plansHref} className="btn-primary px-6 py-3.5 text-base" style={{ borderRadius: 10 }}>Explore Plans <ArrowRight className="h-5 w-5" /></Link>
-              <Link href={expertHref} className="btn-secondary px-6 py-3.5 text-base" style={{ borderRadius: 10 }}>
-                <MessageCircle className="h-5 w-5 text-[#085C44]" /> Talk to an Expert
-              </Link>
+              {expertHref.startsWith("http") ? (
+                <a href={expertHref} target="_blank" rel="noopener noreferrer" className="btn-secondary px-6 py-3.5 text-base" style={{ borderRadius: 10 }}>
+                  <MessageCircle className="h-5 w-5 text-[#085C44]" /> Talk to an Expert
+                </a>
+              ) : (
+                <Link href={expertHref} className="btn-secondary px-6 py-3.5 text-base" style={{ borderRadius: 10 }}>
+                  <MessageCircle className="h-5 w-5 text-[#085C44]" /> Talk to an Expert
+                </Link>
+              )}
             </div>
           </div>
           <div className="relative">
@@ -307,7 +313,11 @@ export default function Home() {
             {["CA-verified professionals", "Dedicated compliance support", "WhatsApp-first communication", "Business-focused tax & finance guidance"].map((x) => (
               <div key={x} className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-3"><Check className="h-5 w-5 shrink-0 text-[#0e6b50]" /> {x}</div>
             ))}
-            <Link href={expertHref} className="btn-primary mt-2 px-6 py-3" style={{ borderRadius: 10 }}>Talk to an Expert</Link>
+            {expertHref.startsWith("http") ? (
+              <a href={expertHref} target="_blank" rel="noopener noreferrer" className="btn-primary mt-2 px-6 py-3" style={{ borderRadius: 10 }}>Talk to an Expert</a>
+            ) : (
+              <Link href={expertHref} className="btn-primary mt-2 px-6 py-3" style={{ borderRadius: 10 }}>Talk to an Expert</Link>
+            )}
           </div>
         </div>
       </section>
@@ -347,7 +357,7 @@ export default function Home() {
             <Link href={ctaHref} className="px-6 py-3.5 text-base font-extrabold text-[var(--navy)]" style={{ background: "white", borderRadius: 10, boxShadow: "0 10px 30px rgba(0,0,0,.15)" }}>
               Get Started <ArrowRight className="ml-1 inline h-5 w-5" />
             </Link>
-            <a href="https://wa.me/919693959083" className="border-2 border-white/70 px-6 py-3.5 text-base font-extrabold text-white transition hover:bg-white/10" style={{ borderRadius: 10 }}>
+            <a href="https://wa.me/919693959083" target="_blank" rel="noopener noreferrer" className="border-2 border-white/70 px-6 py-3.5 text-base font-extrabold text-white transition hover:bg-white/10" style={{ borderRadius: 10 }}>
               💬 Talk on WhatsApp
             </a>
           </div>
@@ -383,7 +393,7 @@ export default function Home() {
             <ul className="space-y-2.5" style={{ color: "#4d596c" }}>
               <li><a href="mailto:hello@smaridhi.com" className="hover:text-[#085C44]">hello@smaridhi.com</a></li>
               <li><a href="tel:+919693959083" className="hover:text-[#085C44]">+91 96939 59083</a></li>
-              <li><a href="https://wa.me/919693959083" className="hover:text-[#085C44]">WhatsApp Support</a></li>
+              <li><a href="https://wa.me/919693959083" target="_blank" rel="noopener noreferrer" className="hover:text-[#085C44]">WhatsApp Support</a></li>
             </ul>
           </div>
           <div className="text-sm" style={{ color: "#4d596c" }}>
