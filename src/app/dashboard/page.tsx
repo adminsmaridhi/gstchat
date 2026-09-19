@@ -77,9 +77,16 @@ export default function DashboardPage() {
               )}
             </div>
             {plan && (
-              <div className="text-sm text-emerald-100">
-                {formatINR(plan.price)}/{plan.billingCycle}
-              </div>
+              <>
+                <div className="text-sm text-emerald-100">
+                  {formatINR(plan.price)}/{plan.billingCycle}
+                </div>
+                {(plan.tagline || plan.description) && (
+                  <div className="mt-1 text-sm font-semibold text-emerald-50">
+                    {plan.tagline || plan.description}
+                  </div>
+                )}
+              </>
             )}
           </div>
           <div className="text-right">
