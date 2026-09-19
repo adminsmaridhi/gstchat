@@ -80,7 +80,16 @@ router.post("/register", async (req, res) => {
       ],
     });
     if (verified) {
-      return res.status(409).json({ error: "A user with this email, phone or username already exists" });
+      const clashes = [];
+      if (String(verified.email || "").toLowerCase() === normalizedEmail) clashes.push("email");
+      if (String(verified.phone || "").trim() === String(phone).trim()) clashes.push("phone");
+      if (normalizedUsername && String(verified.username || "").toLowerCase() === normalizedUsername) clashes.push("username");
+      const fields = clashes.length ? "this " + clashes.join(" and this ") : "this email, phone or username";
+      return res.status(409).json({
+        error: `A user with ${fields} already exists. This account is ${verified.name || "existing"} (${verified.email}). Login or use "Forgot password" to recover it.`,
+        field: clashes,
+        existingUser: { name: verified.name, email: verified.email },
+      });
     }
 
     // If an unverified account exists for this email, update it and resend OTP
