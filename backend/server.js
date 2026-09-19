@@ -135,14 +135,29 @@ app.use((req, res, next) => {
 });
 
 // Serve chat uploads from Cloudflare R2 (falls back to local disk if unconfigured).
-// Requires authentication and only the sender (or an admin) may fetch a file.
-// File keys embed the sender ObjectId: chat_<ts>-<rand>-<senderId>.<ext>
+// Requires authentication; the sender, the recipient, or an admin may fetch a file.
+// Authorized users are resolved from the chat message that references the file
+// (falling back to the sender id embedded in the key).
 app.get("/api/uploads/:key", requireAuth, async (req, res) => {
   try {
     const key = String(req.params.key);
-    const senderId = key.replace(/\.[^.]+$/, "").match(/[0-9a-f]{24}$/)?.[0];
-    if ((senderId && senderId !== req.userId && !isAdminRole(req.user.role)) || (!senderId && !isAdminRole(req.user.role))) {
-      return res.status(403).json({ error: "Not allowed" });
+    const rel = `/api/uploads/${key}`;
+    const isAdmin = isAdminRole(req.user.role);
+    if (!isAdmin) {
+      const { ChatMessage } = require("./models/ChatMessage");
+      const msg = await ChatMessage.findOne({ fileUrl: rel }).exec();
+      const allowed =
+        msg &&
+        [msg.senderId, msg.receiverId]
+          .filter(Boolean)
+          .map((id) => String(id))
+          .includes(req.userId);
+      if (!allowed) {
+        const senderId = key.replace(/\.[^.]+$/, "").match(/[0-9a-f]{24}$/)?.[0];
+        if (!senderId || senderId !== req.userId) {
+          return res.status(403).json({ error: "Not allowed" });
+        }
+      }
     }
     const { getObject } = require("./utils/r2");
     const obj = await getObject(key);
