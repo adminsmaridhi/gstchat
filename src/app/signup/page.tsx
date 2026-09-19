@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { api, formatINR } from "@/lib/api";
 import { useAuth } from "@/components/AuthContext";
 import { gstinIsValid, panIsValid } from "@/lib/validators";
+import { X } from "lucide-react";
 
 const BUSINESS_TYPES = [
   "Proprietorship",
@@ -214,115 +215,168 @@ function SignupForm() {
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
               Choose a Plan
             </h2>
+
+            {/* No Plan — full width banner */}
+            <button
+              type="button"
+              onClick={() => setPlanId("")}
+              className={`mb-3 flex w-full items-center justify-between gap-3 rounded-xl border-2 p-3 text-left transition ${
+                !planId
+                  ? "border-emerald-600 bg-emerald-50"
+                  : "border-slate-200 bg-white hover:border-slate-300"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-bold ${
+                  !planId ? "bg-emerald-600 text-white" : "border border-slate-300 text-slate-300"
+                }`}>
+                  {!planId ? "✓" : ""}
+                </span>
+                <span>
+                  <span className="block text-sm font-bold text-slate-900">No Plan for now</span>
+                  <span className="block text-xs text-slate-500">Start free — add a plan anytime</span>
+                </span>
+              </div>
+              <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700">
+                ₹0
+              </span>
+            </button>
+
+            {/* Plan cards */}
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <button
-                type="button"
-                onClick={() => setPlanId("")}
-                className={`rounded-xl border-2 border-dashed p-3 text-left transition ${
-                  !planId
-                    ? "border-emerald-600 bg-emerald-50"
-                    : "border-slate-200 bg-white hover:border-slate-300"
-                }`}
-              >
-                <div className="font-semibold text-sm">No Plan</div>
-                <div className="mt-1 text-base font-bold text-slate-900">
-                  Free
-                  <span className="text-xs font-normal text-slate-500">/ for now</span>
-                </div>
-                <div className="mt-2 text-[15px] font-extrabold leading-snug text-[var(--green)]">
-                  Try it free — add a plan anytime
-                </div>
-              </button>
               {plans.map((p: any) => (
-                <div key={p._id} className="flex flex-col">
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setPlanId(p._id)}
-                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setPlanId(p._id); } }}
-                    className={`relative flex w-full cursor-pointer flex-col rounded-xl border-2 p-3.5 text-left transition ${
-                      planId === p._id
-                        ? "border-emerald-600 bg-emerald-50 ring-2 ring-emerald-600/20"
-                        : "border-slate-200 bg-white hover:border-emerald-400 hover:shadow-md"
-                    }`}
-                  >
-                    {p.popular && (
-                      <span className="badge bg-emerald-600 text-white absolute -top-2 right-2">Popular</span>
-                    )}
-                    <div className="flex items-center gap-1.5 pr-6 font-semibold text-sm">
-                      {p.name}
-                      {p.features?.length > 0 && (
-                        <button
-                          type="button"
-                          aria-label="View plan details"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setInfoPlan(infoPlan === p._id ? null : p._id);
-                          }}
-                          className={`ml-auto flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-xs font-bold transition ${
-                            infoPlan === p._id
-                              ? "border-emerald-600 bg-emerald-600 text-white"
-                              : "border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
-                          }`}
-                        >
-                          {infoPlan === p._id ? "✕" : "ℹ"}
-                        </button>
-                      )}
-                    </div>
-                    <div className="mt-1 text-lg font-bold text-slate-900">
-                      {formatINR(p.price)}
-                      <span className="text-xs font-normal text-slate-500">/{p.billingCycle}</span>
-                    </div>
-                    {p.tagline && (
-                      <div className="mt-2 text-[15px] font-extrabold leading-snug text-[var(--green)]">
-                        {p.tagline}
-                      </div>
+                <div
+                  key={p._id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setPlanId(p._id)}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setPlanId(p._id); } }}
+                  className={`group relative flex cursor-pointer flex-col rounded-xl border-2 p-3.5 text-left transition ${
+                    planId === p._id
+                      ? "border-emerald-600 bg-emerald-50 ring-2 ring-emerald-600/20"
+                      : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-emerald-400 hover:shadow-lg"
+                  }`}
+                >
+                  {p.popular && (
+                    <span className="rounded-full bg-amber-400 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-amber-950 absolute -top-2 right-2 shadow-sm">
+                      ★ Popular
+                    </span>
+                  )}
+                  {planId === p._id && (
+                    <span className="absolute -top-2 left-2 grid h-5 w-5 place-items-center rounded-full bg-emerald-600 text-[11px] font-bold text-white shadow">
+                      ✓
+                    </span>
+                  )}
+                  <div className="flex items-center justify-between pr-1 font-semibold text-sm text-slate-900">
+                    {p.name}
+                    {p.features?.length > 0 && (
+                      <button
+                        type="button"
+                        aria-label={`${p.name} details`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setInfoPlan(infoPlan === p._id ? null : p._id);
+                        }}
+                        className="ml-auto flex h-5 w-5 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-xs font-bold text-emerald-600 transition group-hover:border-emerald-400 group-hover:bg-emerald-500 group-hover:text-white"
+                      >
+                        {infoPlan === p._id ? "✕" : "ℹ"}
+                      </button>
                     )}
                   </div>
-
-                  {infoPlan === p._id && (
-                    <div className="mt-2 overflow-hidden rounded-xl border border-emerald-100 bg-white shadow-sm">
-                      <div className="border-b border-slate-100 bg-emerald-50 px-3 py-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-emerald-700">{p.name}</span>
-                          <span className="text-xs font-semibold text-slate-700">
-                            {formatINR(p.price)}
-                            <span className="text-[10px] text-slate-400">/{p.billingCycle}</span>
-                          </span>
-                        </div>
-                      </div>
-                      <ul className="space-y-1.5 px-3 py-3">
-                        {p.features.map((f: string, i: number) => (
-                          <li key={i} className="flex items-start gap-2 text-xs text-slate-700">
-                            <span className="mt-px flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white">
-                              ✓
-                            </span>
-                            <span className="leading-snug">{f}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      <div className="px-3 pb-3">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPlanId(p._id);
-                            setInfoPlan(null);
-                          }}
-                          className={`w-full rounded-lg py-2 text-center text-xs font-semibold transition ${
-                            planId === p._id
-                              ? "cursor-default bg-emerald-100 text-emerald-700"
-                              : "bg-emerald-600 text-white hover:bg-emerald-700"
-                          }`}
-                        >
-                          {planId === p._id ? "Selected" : `Select ${p.name}`}
-                        </button>
-                      </div>
+                  <div className="mt-1.5 flex items-baseline gap-1">
+                    <span className="text-lg font-black text-slate-900">{formatINR(p.price)}</span>
+                    <span className="text-[11px] font-medium text-slate-400">/{p.billingCycle}</span>
+                  </div>
+                  {p.tagline && (
+                    <div className="mt-2 text-[13px] font-bold leading-snug text-[var(--green)]">
+                      {p.tagline}
                     </div>
                   )}
+                  <div className="mt-3 border-t border-slate-100 pt-2">
+                    <span className={`text-[11px] font-semibold ${
+                      planId === p._id ? "text-emerald-700" : "text-slate-400 group-hover:text-emerald-600"
+                    }`}>
+                      {planId === p._id ? "✓ Selected" : "View details ↗"}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
+
+          {/* Details modal */}
+          {infoPlan && (() => {
+            const p = plans.find((x: any) => x._id === infoPlan);
+            if (!p) return null;
+            return (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" onClick={() => setInfoPlan(null)}>
+                <div
+                  className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className={`px-5 py-4 ${p.popular ? "bg-amber-50" : "bg-emerald-50"}`}>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg font-black text-slate-900">{p.name}</h3>
+                          {p.popular && (
+                            <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-amber-950">
+                              ★ Popular
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-1 flex items-baseline gap-1">
+                          <span className="text-2xl font-black text-slate-900">{formatINR(p.price)}</span>
+                          <span className="text-sm text-slate-500">/{p.billingCycle}</span>
+                        </div>
+                        {p.tagline && (
+                          <div className="mt-1 text-sm font-bold text-[var(--green)]">{p.tagline}</div>
+                        )}
+                      </div>
+                      <button
+                        className="rounded-lg p-1 text-slate-400 hover:bg-white hover:text-slate-600"
+                        onClick={() => setInfoPlan(null)}
+                        aria-label="Close"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="max-h-72 overflow-y-auto px-5 py-4">
+                    <div className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400">
+                      What&apos;s included
+                    </div>
+                    <ul className="space-y-2.5">
+                      {(p.features || []).map((f: string, i: number) => (
+                        <li key={i} className="flex items-start gap-2.5 text-sm text-slate-700">
+                          <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-600 text-[11px] font-bold text-white">
+                            ✓
+                          </span>
+                          <span className="leading-snug">{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="border-t border-slate-100 px-5 py-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPlanId(p._id);
+                        setInfoPlan(null);
+                      }}
+                      className={`w-full rounded-lg py-2.5 text-center text-sm font-bold transition ${
+                        planId === p._id
+                          ? "cursor-default bg-emerald-100 text-emerald-700"
+                          : "bg-emerald-600 text-white hover:bg-emerald-700"
+                      }`}
+                    >
+                      {planId === p._id ? "✓ Selected" : `Sign up with ${p.name}`}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           <button type="submit" disabled={loading} className="btn-primary w-full py-3 text-base">
             {loading ? "Creating account..." : "Create Account & Get OTP"}
