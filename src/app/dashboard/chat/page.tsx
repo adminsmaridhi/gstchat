@@ -679,7 +679,15 @@ export default function ChatPage() {
                 ref={fileRef}
                 type="file"
                 className="hidden"
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                onChange={(e) => {
+                  const f = e.target.files?.[0] || null;
+                  if (f && f.size > 4 * 1024 * 1024) {
+                    alert("File too large (max 4MB)");
+                    if (fileRef.current) fileRef.current.value = "";
+                    return;
+                  }
+                  setFile(f);
+                }}
               />
               <textarea
                 rows={1}
