@@ -27,7 +27,7 @@ export default function PlansPage() {
             <ArrowLeft className="h-4 w-4 text-slate-400" />
             <span className="font-bold text-slate-900">Back to home</span>
           </Link>
-          <Link href="/" className="text-xl font-bold text-emerald-600">SMRIDHI</Link>
+          <Link href="/" className="text-xl font-bold text-emerald-600">Smaridhi</Link>
         </div>
       </header>
 

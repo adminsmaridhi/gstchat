@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "https://smaridhi.vercel.app/plans",
-    title: "Pricing & Plans | SMRIDHI",
+    title: "Pricing & Plans | Smaridhi",
     description:
       "GST, Income Tax, Accounting and ROC compliance plans — FREE, Starter, Business and Growth. Transparent annual pricing.",
   },

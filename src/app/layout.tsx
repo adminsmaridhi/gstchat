@@ -7,11 +7,11 @@ const BASE = process.env.BASE_URL || "https://smaridhi.vercel.app";
 export const metadata: Metadata = {
   metadataBase: new URL(BASE),
   title: {
-    default: "SMRIDHI | Business Compliance & Tax Made Simple",
-    template: "%s | SMRIDHI",
+    default: "Smaridhi | Business Compliance & Tax Made Simple",
+    template: "%s | Smaridhi",
   },
   description:
-    "SMRIDHI helps Indian businesses manage GST, Income Tax, Accounting, Bookkeeping and ROC compliance with dedicated expert support and WhatsApp-first communication.",
+    "Smaridhi helps Indian businesses manage GST, Income Tax, Accounting, Bookkeeping and ROC compliance with dedicated expert support and WhatsApp-first communication.",
   keywords: [
     "GST registration",
     "GST filing",
@@ -24,17 +24,17 @@ export const metadata: Metadata = {
     "CA services Bengaluru",
     "business compliance India",
   ],
-  authors: [{ name: "SMRIDHI" }],
-  creator: "SMRIDHI",
-  publisher: "SMRIDHI",
+  authors: [{ name: "Smaridhi" }],
+  creator: "Smaridhi",
+  publisher: "Smaridhi",
   robots: { index: true, follow: true },
   alternates: { canonical: BASE },
   openGraph: {
     type: "website",
     locale: "en_IN",
     url: BASE,
-    siteName: "SMRIDHI",
-    title: "SMRIDHI | Business Compliance & Tax Made Simple",
+    siteName: "Smaridhi",
+    title: "Smaridhi | Business Compliance & Tax Made Simple",
     description:
       "GST, Income Tax, Accounting, Bookkeeping and ROC compliance handled by professionals. Dedicated support for Indian businesses.",
     images: [
@@ -42,13 +42,13 @@ export const metadata: Metadata = {
         url: `${BASE}/logo.jpeg`,
         width: 295,
         height: 76,
-        alt: "SMRIDHI — Business Compliance & Financial Services",
+        alt: "Smaridhi — Business Compliance & Financial Services",
       },
     ],
   },
   twitter: {
     card: "summary",
-    title: "SMRIDHI | Business Compliance & Tax Made Simple",
+    title: "Smaridhi | Business Compliance & Tax Made Simple",
     description:
       "GST, Income Tax, Accounting, Bookkeeping and ROC compliance handled by professionals.",
     images: [`${BASE}/logo.jpeg`],
@@ -72,7 +72,7 @@ export default function RootLayout({
       {
         "@type": "ProfessionalService",
         "@id": `${BASE}/#organization`,
-        name: "SMRIDHI",
+        name: "Smaridhi",
         url: BASE,
         logo: `${BASE}/logo.jpeg`,
         image: `${BASE}/logo.jpeg`,
@@ -95,7 +95,7 @@ export default function RootLayout({
         "@type": "WebSite",
         "@id": `${BASE}/#website`,
         url: BASE,
-        name: "SMRIDHI",
+        name: "Smaridhi",
         publisher: { "@id": `${BASE}/#organization` },
         inLanguage: "en-IN",
       },

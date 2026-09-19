@@ -91,7 +91,7 @@ export default function DashboardShell({
             ☰
           </button>
           <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.jpeg" alt="SMRIDHI logo" className="h-9 w-auto" style={{ objectFit: "contain" }} />
+            <img src="/logo.jpeg" alt="Smaridhi logo" className="h-9 w-auto" style={{ objectFit: "contain", mixBlendMode: "multiply" }} />
           </Link>
 
           {/* Desktop nav */}
@@ -163,7 +163,7 @@ export default function DashboardShell({
 
       {/* Floating WhatsApp connect button */}
       <a
-        href="https://wa.me/919693959083?text=Hi%20SMRIDHI%2C%20I%20need%20help%20with%20my%20compliance"
+        href="https://wa.me/919693959083?text=Hi%20Smaridhi%2C%20I%20need%20help%20with%20my%20compliance"
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-3 text-sm font-bold text-white shadow-lg transition hover:scale-105"

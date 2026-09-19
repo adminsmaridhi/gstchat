@@ -42,7 +42,7 @@ async function sendMail({ to, subject, html, text }) {
   if (resend) {
     try {
       const { data, error } = await resend.emails.send({
-        from: RESEND_FROM || "SMRIDHI <onboarding@resend.dev>",
+        from: RESEND_FROM || "Smaridhi <onboarding@resend.dev>",
         to,
         subject,
         html: html || "",

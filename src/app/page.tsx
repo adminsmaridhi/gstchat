@@ -48,10 +48,10 @@ export default function Home() {
   const faqs = [
     { q: "Do I get a dedicated CA?", a: "Depending on your selected plan, you get a dedicated compliance professional or CA who becomes your primary point of contact." },
     { q: "Can I upload documents on WhatsApp?", a: "Yes. You can share required documents and receive updates through WhatsApp." },
-    { q: "Do you help with GST notices?", a: "Yes. SMRIDHI provides GST notice assistance and expert guidance based on your plan and requirements." },
+    { q: "Do you help with GST notices?", a: "Yes. Smaridhi provides GST notice assistance and expert guidance based on your plan and requirements." },
     { q: "Do you work with startups?", a: "Absolutely. We support startups with registration, GST, accounting, taxation and ongoing ROC compliance." },
     { q: "How do payments work?", a: "Select a plan and contact our team. We will guide you through payment and onboarding." },
-    { q: "Where are you based?", a: "SMRIDHI is based in Bengaluru, Karnataka, India." },
+    { q: "Where are you based?", a: "Smaridhi is based in Bengaluru, Karnataka, India." },
   ];
 
   return (
@@ -73,18 +73,18 @@ export default function Home() {
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-[15px]" style={{ borderBottom: "1px solid rgba(20,40,70,.08)" }}>
         <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-4">
 <Link href="/" className="flex items-center gap-3">
-              <img src="/logo.jpeg" alt="SMRIDHI logo" className="h-14 w-auto" style={{ objectFit: "contain" }} />
+              <img src="/logo.jpeg" alt="Smaridhi logo" className="h-14 w-auto" style={{ objectFit: "contain", mixBlendMode: "multiply" }} />
             </Link>
           <nav className="hidden items-center gap-7 text-sm font-semibold md:flex" style={{ color: "#4d596c" }}>
-            <a href="#services" className="transition hover:text-[#087f5b]">Services</a>
-            <a href="#why" className="transition hover:text-[#087f5b]">Why SMRIDHI</a>
-            <a href="#pricing" className="transition hover:text-[#087f5b]">Pricing</a>
-            <a href="#how" className="transition hover:text-[#087f5b]">How It Works</a>
-            <a href="#faq" className="transition hover:text-[#087f5b]">FAQ</a>
+            <a href="#services" className="transition hover:text-[#085C44]">Services</a>
+            <a href="#why" className="transition hover:text-[#085C44]">Why Smaridhi</a>
+            <a href="#pricing" className="transition hover:text-[#085C44]">Pricing</a>
+            <a href="#how" className="transition hover:text-[#085C44]">How It Works</a>
+            <a href="#faq" className="transition hover:text-[#085C44]">FAQ</a>
           </nav>
           <div className="hidden items-center gap-2.5 md:flex">
             <a href="https://wa.me/919693959083" className="btn-secondary" style={{ borderRadius: 10 }}>
-              <MessageCircle className="h-4 w-4" style={{ color: "#087f5b" }} /> WhatsApp
+              <MessageCircle className="h-4 w-4" style={{ color: "#085C44" }} /> WhatsApp
             </a>
             {user ? (
               <Link href={ctaHref} className="btn-primary" style={{ borderRadius: 10 }}>
@@ -103,7 +103,7 @@ export default function Home() {
         {menuOpen && (
           <nav className="flex flex-col gap-3 border-t bg-white px-6 py-4 text-sm font-semibold md:hidden" style={{ borderColor: "var(--border)", color: "#4d596c" }}>
             <a href="#services" onClick={() => setMenuOpen(false)}>Services</a>
-            <a href="#why" onClick={() => setMenuOpen(false)}>Why SMRIDHI</a>
+            <a href="#why" onClick={() => setMenuOpen(false)}>Why Smaridhi</a>
             <a href="#pricing" onClick={() => setMenuOpen(false)}>Pricing</a>
             <a href="#how" onClick={() => setMenuOpen(false)}>How It Works</a>
             <a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
@@ -116,33 +116,33 @@ export default function Home() {
       <section className="relative overflow-hidden" style={{ padding: "95px 0 90px", background: "radial-gradient(circle at 85% 15%,rgba(16,168,120,.15),transparent 28%),radial-gradient(circle at 10% 90%,rgba(215,168,62,.10),transparent 24%),linear-gradient(135deg,#ffffff,#f3f7fb)" }}>
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 lg:grid-cols-2">
           <div>
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-extrabold text-[#087f5b]" style={{ background: "#e8f6f0", borderColor: "#ccecdf" }}>
-              <span className="h-1.5 w-1.5 rounded-full bg-[#10a878]" /> CA-Verified · Trusted Compliance Support
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-extrabold text-[#085C44]" style={{ background: "#e8f6f0", borderColor: "#ccecdf" }}>
+              <span className="h-1.5 w-1.5 rounded-full bg-[#0e6b50]" /> CA-Verified · Trusted Compliance Support
             </div>
             <h1 className="font-display text-5xl font-extrabold leading-[1.04] tracking-[-3.5px] lg:text-[70px]" style={{ color: "var(--navy)" }}>
               Your Business. <br />
-              Our <em className="not-italic" style={{ color: "#087f5b" }}>Compliance.</em>
+              Our <em className="not-italic" style={{ color: "#085C44" }}>Compliance.</em>
             </h1>
             <p className="mt-5 max-w-xl text-lg" style={{ color: "var(--muted)" }}>
               GST, Income Tax, Accounting, Bookkeeping and ROC compliance — handled by professionals so you can focus on growing your business.
             </p>
             <div className="mt-3 mb-8 flex flex-wrap gap-6 text-[13px] font-semibold" style={{ color: "#586477" }}>
-              <span><span className="font-black text-[#087f5b]">✓</span> 2,000+ businesses supported</span>
-              <span><span className="font-black text-[#087f5b]">✓</span> CA-verified professionals</span>
-              <span><span className="font-black text-[#087f5b]">✓</span> 24×7 WhatsApp support</span>
+              <span><span className="font-black text-[#085C44]">✓</span> 2,000+ businesses supported</span>
+              <span><span className="font-black text-[#085C44]">✓</span> CA-verified professionals</span>
+              <span><span className="font-black text-[#085C44]">✓</span> 24×7 WhatsApp support</span>
             </div>
             <div className="flex flex-wrap gap-3">
               <Link href={plansHref} className="btn-primary px-6 py-3.5 text-base" style={{ borderRadius: 10 }}>Explore Plans <ArrowRight className="h-5 w-5" /></Link>
               <Link href={expertHref} className="btn-secondary px-6 py-3.5 text-base" style={{ borderRadius: 10 }}>
-                <MessageCircle className="h-5 w-5 text-[#087f5b]" /> Talk to an Expert
+                <MessageCircle className="h-5 w-5 text-[#085C44]" /> Talk to an Expert
               </Link>
             </div>
           </div>
           <div className="relative">
             <div className="rounded-[25px] border bg-white p-6" style={{ borderColor: "#e3e8ef", boxShadow: "0 30px 80px rgba(16,35,63,.14)" }}>
               <div className="mb-6 flex items-center justify-between">
-                <div className="font-display text-base font-extrabold" style={{ color: "var(--navy)" }}>SMRIDHI Compliance</div>
-                <span className="badge font-bold text-[#087f5b]" style={{ background: "#e8f6f0", border: "1px solid #ccecdf" }}>● ALL ON TRACK</span>
+                <div className="font-display text-base font-extrabold" style={{ color: "var(--navy)" }}>Smaridhi Compliance</div>
+                <span className="badge font-bold text-[#085C44]" style={{ background: "#e8f6f0", border: "1px solid #ccecdf" }}>● ALL ON TRACK</span>
               </div>
               {[
                 { label: "GST Compliance", v: "100%" },
@@ -190,7 +190,7 @@ export default function Home() {
               <ul className="mt-4 space-y-2">
                 {s.items.map((it) => (
                   <li key={it} className="flex items-start gap-2 text-sm" style={{ color: "#4d596c" }}>
-                    <Check className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "#087f5b" }} /> {it}
+                    <Check className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "#085C44" }} /> {it}
                   </li>
                 ))}
               </ul>
@@ -199,22 +199,22 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Why SMRIDHI */}
+      {/* Why Smaridhi */}
       <section id="why" className="py-20" style={{ background: "var(--cream)" }}>
         <div className="mx-auto max-w-6xl px-4">
           <div className="mb-12 text-center">
-            <h2 className="font-display text-4xl font-extrabold tracking-tight" style={{ color: "var(--navy)" }}>Why SMRIDHI</h2>
+            <h2 className="font-display text-4xl font-extrabold tracking-tight" style={{ color: "var(--navy)" }}>Why Smaridhi</h2>
             <p className="mt-2 text-lg" style={{ color: "var(--muted)" }}>More than compliance. A partner for your business.</p>
           </div>
           <div className="grid gap-8 md:grid-cols-2">
             <div className="rounded-3xl p-8" style={{ background: "linear-gradient(135deg,var(--navy),var(--navy2))", color: "white" }}>
               <h3 className="font-display text-2xl font-extrabold">Stop chasing accountants. Start focusing on growth.</h3>
               <p className="mt-3 text-sm opacity-80">
-                Your business shouldn&apos;t slow down because of GST deadlines, tax filings or accounting work. SMRIDHI brings everything together under one dedicated team.
+                Your business shouldn&apos;t slow down because of GST deadlines, tax filings or accounting work. Smaridhi brings everything together under one dedicated team.
               </p>
               <ul className="mt-6 space-y-3 text-sm font-medium">
                 {["One dedicated point of contact", "Compliance deadline tracking", "WhatsApp-first support", "Transparent annual pricing"].map((x) => (
-                  <li key={x}><span className="mr-2 font-black text-[#10a878]">✓</span>{x}</li>
+                  <li key={x}><span className="mr-2 font-black text-[#0e6b50]">✓</span>{x}</li>
                 ))}
               </ul>
             </div>
@@ -278,7 +278,7 @@ export default function Home() {
                 <ul className="mt-6 space-y-2.5 border-t pt-6" style={{ borderColor: "var(--border)" }}>
                   {(p.features || []).slice(0, 7).map((f: string, i: number) => (
                     <li key={i} className="flex items-start gap-2 text-sm" style={{ color: "#4d596c" }}>
-                      <Check className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "#087f5b" }} /> {f}
+                      <Check className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "#085C44" }} /> {f}
                     </li>
                   ))}
                 </ul>
@@ -296,11 +296,11 @@ export default function Home() {
         <div className="grid items-center gap-10 rounded-3xl px-8 py-12 md:grid-cols-2 lg:px-16" style={{ background: "linear-gradient(135deg,var(--navy),var(--navy2))", color: "white" }}>
           <div>
             <h2 className="font-display text-4xl font-extrabold tracking-tight">Real experts. Real support.</h2>
-            <p className="mt-3 opacity-80">Your finances deserve more than an automated dashboard. SMRIDHI combines technology with human expertise so you always have someone to speak to when you need help.</p>
+            <p className="mt-3 opacity-80">Your finances deserve more than an automated dashboard. Smaridhi combines technology with human expertise so you always have someone to speak to when you need help.</p>
           </div>
           <div className="space-y-3 text-sm font-semibold">
             {["CA-verified professionals", "Dedicated compliance support", "WhatsApp-first communication", "Business-focused tax & finance guidance"].map((x) => (
-              <div key={x} className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-3"><Check className="h-5 w-5 shrink-0 text-[#10a878]" /> {x}</div>
+              <div key={x} className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-3"><Check className="h-5 w-5 shrink-0 text-[#0e6b50]" /> {x}</div>
             ))}
             <Link href={expertHref} className="btn-primary mt-2 px-6 py-3" style={{ borderRadius: 10 }}>Talk to an Expert</Link>
           </div>
@@ -324,7 +324,7 @@ export default function Home() {
         <div className="space-y-3">
           {faqs.map((f) => (
             <details key={f.q} className="rounded-2xl border bg-white p-5" style={{ borderColor: "var(--border)" }}>
-              <summary className="cursor-pointer list-none font-semibold" style={{ color: "var(--navy)" }}>{f.q}<span className="float-right font-bold" style={{ color: "#087f5b" }}>+</span></summary>
+              <summary className="cursor-pointer list-none font-semibold" style={{ color: "var(--navy)" }}>{f.q}<span className="float-right font-bold" style={{ color: "#085C44" }}>+</span></summary>
               <p className="mt-3 text-sm" style={{ color: "var(--muted)" }}>{f.a}</p>
             </details>
           ))}
@@ -336,7 +336,7 @@ export default function Home() {
         <div className="rounded-3xl p-10 text-center md:p-16" style={{ background: "radial-gradient(circle at 70% 20%,rgba(16,168,120,.25),transparent 40%),linear-gradient(135deg,var(--green),var(--green2))" }}>
           <h2 className="font-display text-4xl font-extrabold tracking-tight text-white">Your business deserves better compliance.</h2>
           <p className="mx-auto mt-3 max-w-xl text-white/90">
-            Let SMRIDHI handle the paperwork, deadlines and filings — while you focus on building the next big thing.
+            Let Smaridhi handle the paperwork, deadlines and filings — while you focus on building the next big thing.
           </p>
           <div className="mt-8 flex justify-center gap-3">
             <Link href={ctaHref} className="px-6 py-3.5 text-base font-extrabold text-[var(--navy)]" style={{ background: "white", borderRadius: 10, boxShadow: "0 10px 30px rgba(0,0,0,.15)" }}>
@@ -354,7 +354,7 @@ export default function Home() {
         <div className="mx-auto grid max-w-6xl gap-10 px-4 md:grid-cols-4">
           <div>
             <Link href="/" className="inline-block">
-              <img src="/logo.jpeg" alt="SMRIDHI logo" className="h-10 w-auto" style={{ objectFit: "contain" }} />
+              <img src="/logo.jpeg" alt="Smaridhi logo" className="h-10 w-auto" style={{ objectFit: "contain", mixBlendMode: "multiply" }} />
             </Link>
             <p className="mt-4 max-w-xs text-sm" style={{ color: "var(--muted)" }}>
               Business Compliance &amp; Financial Services for Indian businesses. GST, Income Tax, Accounting and ROC — managed by professionals with dedicated support.
@@ -366,19 +366,19 @@ export default function Home() {
           <div className="text-sm">
             <div className="mb-4 font-display font-extrabold" style={{ color: "var(--navy)" }}>Quick Links</div>
             <ul className="space-y-2.5" style={{ color: "#4d596c" }}>
-              <li><a href="#services" className="hover:text-[#087f5b]">Services</a></li>
-              <li><a href="#why" className="hover:text-[#087f5b]">Why SMRIDHI</a></li>
-              <li><a href="#pricing" className="hover:text-[#087f5b]">Pricing</a></li>
-              <li><a href="#how" className="hover:text-[#087f5b]">How It Works</a></li>
-              <li><a href="#faq" className="hover:text-[#087f5b]">FAQ</a></li>
+              <li><a href="#services" className="hover:text-[#085C44]">Services</a></li>
+              <li><a href="#why" className="hover:text-[#085C44]">Why Smaridhi</a></li>
+              <li><a href="#pricing" className="hover:text-[#085C44]">Pricing</a></li>
+              <li><a href="#how" className="hover:text-[#085C44]">How It Works</a></li>
+              <li><a href="#faq" className="hover:text-[#085C44]">FAQ</a></li>
             </ul>
           </div>
           <div className="text-sm">
             <div className="mb-4 font-display font-extrabold" style={{ color: "var(--navy)" }}>Get in touch</div>
             <ul className="space-y-2.5" style={{ color: "#4d596c" }}>
-              <li><a href="mailto:hello@smaridhi.com" className="hover:text-[#087f5b]">hello@smaridhi.com</a></li>
-              <li><a href="tel:+919693959083" className="hover:text-[#087f5b]">+91 96939 59083</a></li>
-              <li><a href="https://wa.me/919693959083" className="hover:text-[#087f5b]">WhatsApp Support</a></li>
+              <li><a href="mailto:hello@smaridhi.com" className="hover:text-[#085C44]">hello@smaridhi.com</a></li>
+              <li><a href="tel:+919693959083" className="hover:text-[#085C44]">+91 96939 59083</a></li>
+              <li><a href="https://wa.me/919693959083" className="hover:text-[#085C44]">WhatsApp Support</a></li>
             </ul>
           </div>
           <div className="text-sm" style={{ color: "#4d596c" }}>
@@ -387,7 +387,7 @@ export default function Home() {
           </div>
         </div>
         <div className="mx-auto mt-10 max-w-6xl border-t px-4 pt-6 text-center text-xs" style={{ borderColor: "var(--border)", color: "#7b8492" }}>
-          © {new Date().getFullYear()} SMRIDHI. All Rights Reserved. · Business Compliance &amp; Financial Services · Bengaluru, India
+          © {new Date().getFullYear()} Smaridhi. All Rights Reserved. · Business Compliance &amp; Financial Services · Bengaluru, India
         </div>
       </footer>
     </div>

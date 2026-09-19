@@ -44,12 +44,11 @@ export default function LoginPage() {
           <Link href="/" className="inline-block">
             <img
               src="/logo.jpeg"
-              alt="SMRIDHI logo"
+              alt="Smaridhi logo"
               className="mx-auto mb-4 h-16 w-auto"
-              style={{ objectFit: "contain" }}
+              style={{ objectFit: "contain", mixBlendMode: "multiply" }}
             />
           </Link>
-          <h1 className="font-display text-2xl font-extrabold text-[var(--navy)]">SMRIDHI</h1>
           <p className="mt-1 text-sm text-slate-500">Sign in to your compliance workspace</p>
         </div>
 
@@ -81,7 +80,7 @@ export default function LoginPage() {
             />
           </div>
           <button type="submit" disabled={loading} className="btn-primary w-full py-3">
-            {loading ? "Signing in..." : "Sign In With SMRIDHI"}
+            {loading ? "Signing in..." : "Sign In With Smaridhi"}
           </button>
 
           <p className="text-center text-sm text-slate-500">

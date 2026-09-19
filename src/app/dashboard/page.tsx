@@ -8,7 +8,7 @@ import { useAuth } from "@/components/AuthContext";
 import { api, formatINR, timeAgo } from "@/lib/api";
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [plan, setPlan] = useState<any>(null);
   const [planLoading, setPlanLoading] = useState(false);
 
@@ -49,7 +49,7 @@ export default function DashboardPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <a
-            href="https://wa.me/919693959083?text=Hi%20SMRIDHI%2C%20I%20need%20help%20with%20my%20compliance"
+            href="https://wa.me/919693959083?text=Hi%20Smaridhi%2C%20I%20need%20help%20with%20my%20compliance"
             target="_blank"
             rel="noopener noreferrer"
             className="btn-secondary"
