@@ -306,11 +306,19 @@ function SignupForm() {
                     </div>
                   )}
                   <div className="mt-3 border-t border-slate-100 pt-2">
-                    <span className={`text-[11px] font-semibold ${
-                      planId === p._id ? "text-emerald-700" : "text-slate-400 group-hover:text-emerald-600"
-                    }`}>
+                    <button
+                      type="button"
+                      aria-label={`${p.name} details`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setInfoPlan(infoPlan === p._id ? null : p._id);
+                      }}
+                      className={`text-[11px] font-semibold ${
+                        planId === p._id ? "text-emerald-700" : "text-slate-400 group-hover:text-emerald-600"
+                      }`}
+                    >
                       {planId === p._id ? "✓ Selected" : "View details ↗"}
-                    </span>
+                    </button>
                   </div>
                 </div>
               ))}
