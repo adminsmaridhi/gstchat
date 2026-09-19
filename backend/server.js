@@ -17,6 +17,9 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const server = http.createServer(app);
 const JWT_SECRET = process.env.JWT_SECRET || "super-secret-jwt-key-2026";
+if (!process.env.JWT_SECRET) {
+  console.warn("[server] WARNING: JWT_SECRET not set — using insecure development secret. Set JWT_SECRET in production.");
+}
 const ADMIN_ROLES = ["admin", "superadmin"];
 
 // ─── WebSocket server for realtime chat ───────────────────────────────────
@@ -109,12 +112,12 @@ if (requestGate) app.use(requestGate);
 // reconnect with the same resilient connectDB before serving the next request.
 let dbConnecting = null;
 async function connectUntilReady() {
-  if (mongoose.connection.readyState === 1) return dbReady;
+  if (mongoose.connection.readyState === 1) return;
   if (dbConnecting) return dbConnecting;
   dbConnecting = connectDB()
     .then(async (mode) => {
       await autoSeed();
-      return dbReady;
+      return mode;
     })
     .finally(() => {
       dbConnecting = null;
@@ -188,7 +191,7 @@ async function autoSeed() {
       isActive: true,
       businessName: "Platform Admin",
     });
-    console.log(`[seed] Super admin created: ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
+    console.log(`[seed] Super admin created: ${ADMIN_EMAIL}`);
   } else if (admin.role !== "superadmin") {
     admin.role = "superadmin";
     if (!admin.username) admin.username = "admin";
@@ -275,7 +278,7 @@ async function start() {
   server.listen(PORT, () => {
     console.log(`\n[server] Backend running on http://localhost:${PORT}`);
     console.log(`[server] Database: ${mode}`);
-    console.log(`[server] Admin login: ${process.env.ADMIN_EMAIL || "admin@example.com"} / ${process.env.ADMIN_PASSWORD || "Admin@123"}\n`);
+    console.log(`[server] Admin login email: ${process.env.ADMIN_EMAIL || "admin@example.com"}\n`);
   });
 }
 

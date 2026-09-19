@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import DashboardShell from "@/components/DashboardShell";
 import { useAuth } from "@/components/AuthContext";
-import Loader, { Spinner } from "@/components/Loader";
+import { Spinner } from "@/components/Loader";
+import { isAdminRole } from "@/lib/api";
 import { Skeleton, PlanCardSkeleton } from "@/components/Skeleton";
 import { api, formatINR } from "@/lib/api";
 import { Check, X, Plus, Pencil, Trash2, Star, ChevronDown, ChevronUp } from "lucide-react";
@@ -17,7 +18,7 @@ export default function PlansPage() {
   const [subscribing, setSubscribing] = useState<string | null>(null);
   const [savingPlan, setSavingPlan] = useState(false);
   const [showAll, setShowAll] = useState(false);
-  const isAdmin = user?.role === "admin";
+  const isAdmin = isAdminRole(user?.role);
 
   const load = () => {
     api<any>("/plans?all=1")

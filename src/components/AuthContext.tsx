@@ -33,7 +33,7 @@ const AuthContext = createContext<AuthState>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<any>(getStoredUser());
   const [token, setTok] = useState<string | null>(getToken());
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(!!getToken());
 
   const login = useCallback((t: string, u: any) => {
     setToken(t);

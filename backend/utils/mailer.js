@@ -39,6 +39,8 @@ if (smtpConfigured) {
  * pretend the email was sent. Resolves { sent, mode, id }.
  */
 async function sendMail({ to, subject, html, text }) {
+  const errors = [];
+
   if (resend) {
     try {
       const { data, error } = await resend.emails.send({
@@ -50,19 +52,13 @@ async function sendMail({ to, subject, html, text }) {
       });
       if (error) {
         console.error("[mailer] Resend send failed:", error.message);
-        const e = new Error("Failed to deliver email: " + error.message);
-        e.emailDeliveryFailed = true;
-        e.cause = error;
-        throw e;
+        errors.push(error.message);
+      } else {
+        return { sent: true, mode: "resend", id: data?.id };
       }
-      return { sent: true, mode: "resend", id: data?.id };
     } catch (err) {
-      if (err.emailDeliveryFailed) throw err;
       console.error("[mailer] Resend error:", err.message);
-      const e = new Error("Failed to deliver email: " + err.message);
-      e.emailDeliveryFailed = true;
-      e.cause = err;
-      throw e;
+      errors.push(err.message);
     }
   }
 
@@ -78,11 +74,14 @@ async function sendMail({ to, subject, html, text }) {
       return { sent: true, mode: "smtp", messageId: info.messageId };
     } catch (err) {
       console.error("[mailer] SMTP send failed:", err.message);
-      const e = new Error("Failed to deliver email: " + err.message);
-      e.emailDeliveryFailed = true;
-      e.cause = err;
-      throw e;
+      errors.push(err.message);
     }
+  }
+
+  if (errors.length) {
+    const e = new Error("Failed to deliver email: " + errors.join("; "));
+    e.emailDeliveryFailed = true;
+    throw e;
   }
 
   console.log(`\n===== EMAIL (console mode) =====\nTo: ${to}\nSubject: ${subject}\n${html || text}\n================================\n`);

@@ -4,17 +4,20 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthContext";
 import { api, formatINR } from "@/lib/api";
+import { PlanCardSkeleton } from "@/components/Skeleton";
 import { Menu, X, Check, Star, MessageCircle, ArrowRight } from "lucide-react";
 
 export default function Home() {
   const { user } = useAuth();
   const [plans, setPlans] = useState<any[]>([]);
+  const [plansLoading, setPlansLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     api<any>("/plans")
       .then((d) => setPlans(d.plans.slice(0, 3)))
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setPlansLoading(false));
   }, []);
 
   const ctaHref = user ? "/dashboard" : "/signup";
@@ -113,7 +116,7 @@ export default function Home() {
       </header>
 
       {/* Hero */}
-      <section className="relative overflow-hidden" style={{ padding: "95px 0 90px", background: "radial-gradient(circle at 85% 15%,rgba(16,168,120,.15),transparent 28%),radial-gradient(circle at 10% 90%,rgba(215,168,62,.10),transparent 24%),linear-gradient(135deg,#ffffff,#f3f7fb)" }}>
+      <section className="relative overflow-hidden" style={{ padding: "95px 0 90px", background: "radial-gradient(circle at 85% 15%,rgba(8,92,68,.15),transparent 28%),radial-gradient(circle at 10% 90%,rgba(215,168,62,.10),transparent 24%),linear-gradient(135deg,#ffffff,#f3f7fb)" }}>
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 lg:grid-cols-2">
           <div>
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-extrabold text-[#085C44]" style={{ background: "#e8f6f0", borderColor: "#ccecdf" }}>
@@ -264,8 +267,10 @@ export default function Home() {
             <p className="mt-2 text-lg" style={{ color: "var(--muted)" }}>Choose the plan that fits your business.</p>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
-            {plans.map((p: any) => (
-              <div key={p._id} className="relative rounded-3xl border bg-white p-8" style={{ borderColor: p.popular ? "var(--green)" : "var(--border)", borderWidth: 2, boxShadow: p.popular ? "0 20px 50px rgba(8,127,91,.15)" : "0 6px 20px rgba(16,35,63,.05)" }}>
+            {plansLoading
+              ? [0, 1, 2].map((i) => <PlanCardSkeleton key={i} />)
+              : plans.map((p: any) => (
+              <div key={p._id} className="relative rounded-3xl border bg-white p-8" style={{ borderColor: p.popular ? "var(--green)" : "var(--border)", borderWidth: 2, boxShadow: p.popular ? "0 20px 50px rgba(8,92,68,.15)" : "0 6px 20px rgba(16,35,63,.05)" }}>
                 {p.popular && (
                   <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full px-4 py-1.5 text-xs font-extrabold text-white" style={{ background: "linear-gradient(135deg,var(--green),var(--green2))" }}>MOST POPULAR</span>
                 )}
@@ -309,7 +314,7 @@ export default function Home() {
 
       {/* Testimonial */}
       <section className="mx-auto max-w-4xl px-4 pb-20 text-center">
-        <div className="flex justify-center gap-1" style={{ color: "#d7a83e" }}>
+        <div className="flex justify-center gap-1" style={{ color: "var(--gold)" }}>
           {Array.from({ length: 5 }).map((_, i) => <Star key={i} className="h-5 w-5 fill-current" />)}
         </div>
         <blockquote className="mx-auto mt-5 max-w-2xl text-xl font-medium md:text-2xl" style={{ color: "var(--navy)" }}>
@@ -333,7 +338,7 @@ export default function Home() {
 
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-4 pb-20">
-        <div className="rounded-3xl p-10 text-center md:p-16" style={{ background: "radial-gradient(circle at 70% 20%,rgba(16,168,120,.25),transparent 40%),linear-gradient(135deg,var(--green),var(--green2))" }}>
+        <div className="rounded-3xl p-10 text-center md:p-16" style={{ background: "radial-gradient(circle at 70% 20%,rgba(8,92,68,.25),transparent 40%),linear-gradient(135deg,var(--green),var(--green2))" }}>
           <h2 className="font-display text-4xl font-extrabold tracking-tight text-white">Your business deserves better compliance.</h2>
           <p className="mx-auto mt-3 max-w-xl text-white/90">
             Let Smaridhi handle the paperwork, deadlines and filings — while you focus on building the next big thing.

@@ -27,7 +27,8 @@ export default function AdminPage() {
   };
 
   const toggleAll = () => {
-    setSelected((s) => (s.length === users.length ? [] : users.map((u) => u.id)));
+    const visibleIds = filteredUsers.map((u) => u.id);
+    setSelected((s) => (s.length === visibleIds.length ? [] : visibleIds));
   };
 
   const filteredUsers = users.filter((u) => {
@@ -269,7 +270,7 @@ export default function AdminPage() {
                   onClick={toggleAll}
                   className="shrink-0 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
                 >
-                  {selected.length === users.length && users.length > 0 ? "Clear all" : "Select all"}
+                  {selected.length === filteredUsers.length && filteredUsers.length > 0 ? "Clear all" : "Select all"}
                 </button>
               </div>
 

@@ -108,25 +108,35 @@ router.post("/register", async (req, res) => {
       userId = unverified._id;
       userData = { email: normalizedEmail, name: name.trim() };
     } else {
-      userData = await User.create({
-        name: name.trim(),
-        username: normalizedUsername,
-        email: normalizedEmail,
-        phone: String(phone).trim(),
-        password: hashed,
-        role: "user",
-        gstNumber: gstNumber ? String(gstNumber).trim().toUpperCase() : null,
-        businessName: businessName || null,
-        businessType: businessType || null,
-        address: address || null,
-        city: city || null,
-        state: state || null,
-        pincode: pincode || null,
-        panNumber: panNumber ? String(panNumber).trim().toUpperCase() : null,
-        companyEmail: companyEmail || null,
-        planId: planId || null,
-        planActivatedAt: planId ? new Date() : null,
-      });
+      try {
+        userData = await User.create({
+          name: name.trim(),
+          username: normalizedUsername,
+          email: normalizedEmail,
+          phone: String(phone).trim(),
+          password: hashed,
+          role: "user",
+          gstNumber: gstNumber ? String(gstNumber).trim().toUpperCase() : null,
+          businessName: businessName || null,
+          businessType: businessType || null,
+          address: address || null,
+          city: city || null,
+          state: state || null,
+          pincode: pincode || null,
+          panNumber: panNumber ? String(panNumber).trim().toUpperCase() : null,
+          companyEmail: companyEmail || null,
+          planId: planId || null,
+          planActivatedAt: planId ? new Date() : null,
+        });
+      } catch (createErr) {
+        if (createErr?.code === 11000) {
+          return res.status(409).json({
+            error: "This email, phone or username is already registered. Login or use \"Forgot password\" to recover it.",
+            field: [],
+          });
+        }
+        throw createErr;
+      }
       userId = userData._id;
 
       // Create default settings
@@ -136,14 +146,12 @@ router.post("/register", async (req, res) => {
 
     // If OTP is disabled, verify immediately
     if (!otpEnabled) {
-      if (!unverified) {
-        await User.updateOne({ _id: userId }, { $set: { isVerified: true } });
-      }
+      await User.updateOne({ _id: userId }, { $set: { isVerified: true } });
       const fresh = await User.findById(userId);
       const token = signToken(fresh);
       await sendAdminWelcome(userId, name.trim());
       return res.status(201).json({
-        message: unverified ? "Account updated. Please verify your email." : "Registration successful.",
+        message: "Registration successful.",
         token,
         user: fresh.toPublic(),
         otpRequired: false,
