@@ -42,12 +42,12 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <Link href="/" className="inline-block">
-            <div
-              className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl font-display text-2xl font-black text-white"
-              style={{ background: "linear-gradient(135deg,var(--navy),var(--green))", boxShadow: "0 8px 20px rgba(16,35,63,.18)" }}
-            >
-              S
-            </div>
+            <img
+              src="/logo.jpeg"
+              alt="SMRIDHI logo"
+              className="mx-auto mb-4 h-16 w-auto"
+              style={{ objectFit: "contain" }}
+            />
           </Link>
           <h1 className="font-display text-2xl font-extrabold text-[var(--navy)]">SMRIDHI</h1>
           <p className="mt-1 text-sm text-slate-500">Sign in to your compliance workspace</p>

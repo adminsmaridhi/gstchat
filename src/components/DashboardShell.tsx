@@ -90,13 +90,7 @@ export default function DashboardShell({
             ☰
           </button>
           <Link href="/" className="flex items-center gap-2">
-            <div
-              className="grid h-8 w-8 place-items-center rounded-lg font-display text-base font-extrabold text-white"
-              style={{ background: "linear-gradient(135deg,var(--navy),var(--green))" }}
-            >
-              S
-            </div>
-            <span className="font-display font-extrabold text-[var(--navy)]">SMRIDHI</span>
+            <img src="/logo.jpeg" alt="SMRIDHI logo" className="h-9 w-auto" style={{ objectFit: "contain" }} />
           </Link>
 
           {/* Desktop nav */}

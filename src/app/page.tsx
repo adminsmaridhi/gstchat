@@ -56,18 +56,25 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#f7f9fc] text-[#172033]">
+      <script type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqs.map((f) => ({
+              "@type": "Question",
+              name: f.q,
+              acceptedAnswer: { "@type": "Answer", text: f.a },
+            })),
+          }),
+        }}
+      />
       {/* Navbar */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-[15px]" style={{ borderBottom: "1px solid rgba(20,40,70,.08)" }}>
         <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-4">
-          <div className="flex items-center gap-3">
-            <div className="grid h-11 w-11 place-items-center rounded-xl font-display text-xl font-extrabold text-white" style={{ background: "linear-gradient(135deg,var(--navy),var(--green))", boxShadow: "0 8px 20px rgba(16,35,63,.18)" }}>
-              S
-            </div>
-            <div className="leading-tight">
-              <div className="font-display text-xl font-extrabold tracking-tight" style={{ color: "var(--navy)" }}>SMRIDHI</div>
-              <div className="text-[10px] font-semibold" style={{ color: "#7b8492" }}>Business Compliance &amp; Finance</div>
-            </div>
-          </div>
+<Link href="/" className="flex items-center gap-3">
+              <img src="/logo.jpeg" alt="SMRIDHI logo" className="h-14 w-auto" style={{ objectFit: "contain" }} />
+            </Link>
           <nav className="hidden items-center gap-7 text-sm font-semibold md:flex" style={{ color: "#4d596c" }}>
             <a href="#services" className="transition hover:text-[#087f5b]">Services</a>
             <a href="#why" className="transition hover:text-[#087f5b]">Why SMRIDHI</a>
@@ -346,13 +353,9 @@ export default function Home() {
       <footer className="border-t bg-white py-14" style={{ borderColor: "var(--border)" }}>
         <div className="mx-auto grid max-w-6xl gap-10 px-4 md:grid-cols-4">
           <div>
-            <div className="flex items-center gap-2.5">
-              <div className="grid h-10 w-10 place-items-center rounded-xl font-display text-lg font-extrabold text-white" style={{ background: "linear-gradient(135deg,var(--navy),var(--green))" }}>S</div>
-              <div className="leading-tight">
-                <div className="font-display text-lg font-extrabold" style={{ color: "var(--navy)" }}>SMRIDHI</div>
-                <div className="text-[10px] font-semibold" style={{ color: "#7b8492" }}>Business Compliance &amp; Finance</div>
-              </div>
-            </div>
+            <Link href="/" className="inline-block">
+              <img src="/logo.jpeg" alt="SMRIDHI logo" className="h-10 w-auto" style={{ objectFit: "contain" }} />
+            </Link>
             <p className="mt-4 max-w-xs text-sm" style={{ color: "var(--muted)" }}>
               Business Compliance &amp; Financial Services for Indian businesses. GST, Income Tax, Accounting and ROC — managed by professionals with dedicated support.
             </p>
