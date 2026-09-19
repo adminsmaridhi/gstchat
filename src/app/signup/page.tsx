@@ -245,7 +245,7 @@ function SignupForm() {
             </button>
 
             {/* Plan cards */}
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {plansLoading
                 ? [0, 1, 2].map((i) => (
                     <div key={i} className="animate-pulse rounded-xl border-2 border-slate-100 bg-slate-50 p-3.5">
@@ -280,7 +280,7 @@ function SignupForm() {
                       ✓
                     </span>
                   )}
-                  <div className="flex items-center justify-between pr-1 font-semibold text-sm text-slate-900">
+                  <div className="flex items-center justify-between pr-1 text-sm font-semibold text-[var(--green)]">
                     {p.name}
                     {p.features?.length > 0 && (
                       <button
@@ -331,7 +331,7 @@ function SignupForm() {
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="text-lg font-black text-slate-900">{p.name}</h3>
+                          <h3 className="text-lg font-black text-[var(--green)]">{p.name}</h3>
                           {p.popular && (
                             <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-amber-950">
                               ★ Popular

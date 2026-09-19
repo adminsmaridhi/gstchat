@@ -40,13 +40,13 @@ export default function PlansPage() {
         {loading ? (
           <Loader label="Loading plans..." className="py-24" />
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {plans.map((p: any) => (
             <div key={p._id} className={`card relative flex flex-col ${p.popular ? "ring-2 ring-emerald-600" : ""}`}>
               {p.popular && (
                 <span className="badge absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white">Most Popular</span>
               )}
-              <h3 className="text-lg font-bold text-slate-900">{p.name}</h3>
+              <h3 className="text-lg font-bold text-[var(--green)]">{p.name}</h3>
               <p className="mt-1.5 text-sm font-bold text-[var(--green)]">{p.description}</p>
               <div className="mt-4 flex items-baseline gap-1">
                 <span className="text-3xl font-black text-slate-900">{formatINR(p.price)}</span>

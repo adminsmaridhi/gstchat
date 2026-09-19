@@ -113,7 +113,7 @@ export default function PlansPage() {
                   </span>
                 )}
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-slate-900">{p.name}</h3>
+                  <h3 className="text-lg font-bold text-[var(--green)]">{p.name}</h3>
                   {!p.active && <span className="badge bg-slate-100 text-slate-500">Inactive</span>}
                 </div>
                 {p.description && (
@@ -156,7 +156,7 @@ export default function PlansPage() {
                     Current Plan
                   </div>
                   <div className="mt-1 flex items-center gap-2">
-                    <span className="text-2xl font-black text-slate-900">{currentPlan.name}</span>
+                    <span className="text-2xl font-black text-[var(--green)]">{currentPlan.name}</span>
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
                       Active
                     </span>
@@ -214,7 +214,7 @@ export default function PlansPage() {
                       </span>
                     )}
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-bold text-slate-900">{p.name}</h3>
+                      <h3 className="text-lg font-bold text-[var(--green)]">{p.name}</h3>
                       {p.price === 0 && <span className="badge bg-slate-100 text-slate-600">Free</span>}
                     </div>
                     {p.description && (
