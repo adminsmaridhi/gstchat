@@ -158,9 +158,18 @@ export default function AdminPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center">
-                    <div className="flex items-center justify-center gap-2 text-slate-400">
-                      <Spinner className="h-5 w-5 border-2" /> Loading {tab === "users" ? "customers" : "admins"}...
+                  <td colSpan={6} className="px-6 py-4">
+                    <div className="space-y-3">
+                      {[0, 1, 2, 3, 4].map((i) => (
+                        <div key={i} className="flex items-center gap-3">
+                          <div className="h-9 w-9 shrink-0 animate-pulse rounded-full bg-slate-200" />
+                          <div className="flex-1 space-y-2">
+                            <div className="h-3 w-1/2 animate-pulse rounded bg-slate-200" />
+                            <div className="h-2.5 w-2/3 animate-pulse rounded bg-slate-100" />
+                          </div>
+                          <div className="h-3 w-16 animate-pulse rounded bg-slate-200" />
+                        </div>
+                      ))}
                     </div>
                   </td>
                 </tr>

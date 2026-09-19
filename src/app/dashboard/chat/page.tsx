@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import DashboardShell from "@/components/DashboardShell";
 import { Spinner } from "@/components/Loader";
+import { Skeleton } from "@/components/Skeleton";
 import { useAuth } from "@/components/AuthContext";
 import { api, API_URL, isAdminRole } from "@/lib/api";
 import PdfThumb from "@/components/PdfThumb";
@@ -512,9 +513,22 @@ export default function ChatPage() {
               </div>
             )}
             {messages.length === 0 && (
-              <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center text-sm text-slate-500">
+              <div className="flex h-full flex-col justify-center gap-3 px-6">
                 {!ready ? (
-                  <Spinner className="h-6 w-6 border-2" />
+                  <div className="space-y-3">
+                    {[
+                      { align: "justify-start", w: "w-2/3" },
+                      { align: "justify-end", w: "w-1/2" },
+                      { align: "justify-start", w: "w-3/5" },
+                    ].map((b, i) => (
+                      <div key={i} className={`flex ${b.align}`}>
+                        <Skeleton className={`h-9 ${b.w}`} />
+                      </div>
+                    ))}
+                    <div className="flex justify-center pt-1">
+                      <Spinner className="h-5 w-5 border-2" />
+                    </div>
+                  </div>
                 ) : isAdmin && !activeUser ? (
                   <>
                     <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-3xl">

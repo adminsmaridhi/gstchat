@@ -3,12 +3,15 @@
 import { useState } from "react";
 import DashboardShell from "@/components/DashboardShell";
 import { Spinner } from "@/components/Loader";
+import { Skeleton } from "@/components/Skeleton";
 import { useAuth } from "@/components/AuthContext";
 import { api } from "@/lib/api";
 import { gstinIsValid, panIsValid } from "@/lib/validators";
 
+const FIELDS = ["name", "phone", "gstNumber", "panNumber", "businessName", "businessType", "address", "city", "state", "pincode", "companyEmail"];
+
 export default function SettingsPage() {
-  const { user, updateUser } = useAuth();
+  const { user, loading: authLoading, updateUser } = useAuth();
   const [saved, setSaved] = useState("");
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState({
@@ -69,7 +72,17 @@ export default function SettingsPage() {
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
           <h2 className="mb-1 font-bold text-slate-900">Profile & GST</h2>
           <p className="mb-5 text-sm text-slate-500">Shown on your account page and to admins.</p>
-          <div className="grid gap-4 sm:grid-cols-2">
+          {authLoading ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {FIELDS.map((k) => (
+                <div key={k} className={k === "address" || k === "companyEmail" ? "sm:col-span-2" : ""}>
+                  <Skeleton className="mb-1.5 h-3.5 w-24" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="label">Name</label>
               <input className="input" {...f("name")} />
@@ -121,7 +134,8 @@ export default function SettingsPage() {
               <input className="input" {...f("companyEmail")} />
             </div>
           </div>
-          <button className="btn-primary mt-6" onClick={saveProfile} disabled={saving}>
+          )}
+          <button className="btn-primary mt-6" onClick={saveProfile} disabled={saving || authLoading}>
             {saving ? (
               <span className="inline-flex items-center gap-2">
                 <Spinner className="h-4 w-4 border-2" /> Saving...

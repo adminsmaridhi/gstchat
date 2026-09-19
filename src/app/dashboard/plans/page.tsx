@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import DashboardShell from "@/components/DashboardShell";
 import { useAuth } from "@/components/AuthContext";
 import Loader, { Spinner } from "@/components/Loader";
+import { Skeleton, PlanCardSkeleton } from "@/components/Skeleton";
 import { api, formatINR } from "@/lib/api";
 import { Check, X, Plus, Pencil, Trash2, Star, ChevronDown, ChevronUp } from "lucide-react";
 
@@ -99,7 +100,12 @@ export default function PlansPage() {
       )}
 
       {loading ? (
-        <Loader label="Loading plans..." className="py-24" />
+        <div className="space-y-6">
+          <Skeleton className="h-28 w-full" />
+          <div className="grid gap-6 lg:grid-cols-3">
+            {[0, 1, 2].map((i) => <PlanCardSkeleton key={i} />)}
+          </div>
+        </div>
       ) : isAdmin ? (
         <div className="grid gap-6 lg:grid-cols-3 xl:grid-cols-4">
           {plans.map((p: any) => {

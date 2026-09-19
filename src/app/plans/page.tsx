@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/AuthContext";
-import Loader from "@/components/Loader";
+import { PlanCardSkeleton } from "@/components/Skeleton";
 import { api, formatINR } from "@/lib/api";
 import { Check, ArrowLeft } from "lucide-react";
 
@@ -38,7 +38,9 @@ export default function PlansPage() {
         </div>
 
         {loading ? (
-          <Loader label="Loading plans..." className="py-24" />
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[0, 1, 2].map((i) => <PlanCardSkeleton key={i} />)}
+          </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {plans.map((p: any) => (

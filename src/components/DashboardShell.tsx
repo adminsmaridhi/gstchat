@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthContext";
 import { api, isAdminRole } from "@/lib/api";
 import { MessageCircle } from "lucide-react";
+import { Skeleton } from "@/components/Skeleton";
 
 export default function DashboardShell({
   children,
@@ -61,9 +62,26 @@ export default function DashboardShell({
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#e8eef7]">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-white border-t-emerald-600" />
-        <div className="text-sm text-slate-500">Loading...</div>
+      <div className="min-h-screen bg-[#e8eef7]">
+        <div className="flex min-h-screen">
+          <div className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-white p-4 md:flex">
+            <Skeleton className="mb-6 h-9 w-32" />
+            <div className="space-y-3">
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-5 w-full" />
+              ))}
+            </div>
+          </div>
+          <div className="flex-1 p-4 md:p-6">
+            <Skeleton className="h-9 w-48" />
+            <Skeleton className="mt-2 h-4 w-64" />
+            <Skeleton className="mt-6 h-28 w-full" />
+            <Skeleton className="mt-6 h-4 w-full" />
+            <Skeleton className="mt-2 h-4 w-3/4" />
+            <Skeleton className="mt-2 h-4 w-5/6" />
+            <Skeleton className="mt-6 h-48 w-full" />
+          </div>
+        </div>
       </div>
     );
   }
