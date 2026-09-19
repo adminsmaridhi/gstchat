@@ -179,10 +179,12 @@ router.post("/", requireAuth, upload.single("file"), async (req, res) => {
     }
 
     let file = null;
+    let uploadedKey = null;
     if (req.file) {
       const ext = (req.file.originalname.match(/\.([a-zA-Z0-9]+)$/) || [])[1] || "bin";
       const key = `chat/${Date.now()}-${Math.round(Math.random() * 1e9)}-${req.userId}.${ext}`;
       const uploaded = await uploadFile(key, req.file.buffer, req.file.mimetype);
+      uploadedKey = uploaded.key;
       file = {
         fileUrl: `/api/uploads/${uploaded.key}`,
         fileName: req.file.originalname,
@@ -191,7 +193,7 @@ router.post("/", requireAuth, upload.single("file"), async (req, res) => {
       };
     }
 
-    const fileKey = file ? uploaded.key : null;
+    const fileKey = file ? uploadedKey : null;
     const message = await ChatMessage.create({
       senderId: req.userId,
       senderRole: req.user.role,
